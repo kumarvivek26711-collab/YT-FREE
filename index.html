@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>YT Bina Ads 📺</title>
+  <meta name="description" content="YouTube content bina ads ke — clean aur fast" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>▶</text></svg>" />
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #080808; font-family: 'Inter', 'Segoe UI', sans-serif; -webkit-text-size-adjust: 100%; }
+    @keyframes shimmer {
+      0%   { background-position: 200% 0 }
+      100% { background-position: -200% 0 }
+    }
+    ::-webkit-scrollbar { height: 4px; width: 4px; background: #111; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+    input, button { font-family: inherit; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState } = React;
+    
+    // ⚙️ Backend URL (Live on Render)
+    const BACKEND_URL = "https://yt-free.onrender.com";
+
+    const CATS = [
+      { id: "all", icon: "🔥", label: "Trending"       },
+      { id: "10",  icon: "🎵", label: "Music"          },
+      { id: "20",  icon: "🎮", label: "Gaming"         },
+      { id: "24",  icon: "🎭", label: "Entertainment"  },
+      { id: "17",  icon: "⚽", label: "Sports"         },
+      { id: "25",  icon: "📰", label: "News"           },
+      { id: "27",  icon: "📚", label: "Education"      },
+      { id: "28",  icon: "💻", label: "Tech"           },
+      { id: "22",  icon: "👤", label: "Vlogs"          },
+      { id: "1",   icon: "🎬", label: "Films"          },
+    ];
+
+    /* ── helpers ── */
+    function fmt(n) {
+      if (!n) return "";
+      const x = parseInt(n);
+      if (x >= 1e9) return (x/1e9).toFixed(1)+"B";
+      if (x >= 1e6) return (x/1e6).toFixed(1)+"M";
+      if (x >= 1e3) return (x/1e3).toFixed(1)+"K";
+      return String(x);
+    }
+    function ago(d) {
+      if (!d) return "";
+      const days = Math.floor((Date.now() - new Date(d)) / 86400000);
+      if (!days) return "Aaj";
+      if (days < 7)   return days + "d ago";
+      if (days < 30)  return Math.floor(days/7) + "w ago";
+      if (days < 365) return Math.floor(days/30) + "mo ago";
+      return Math.floor(days/365) + "yr ago";
+    }
+    function getVid(v) {
+      return typeof v.id === "string" ? v.id : (v.id && v.id.videoId) || "";
+    }
+
+    /* ── Skeleton ── */
+    function Skeleton() {
+      return (
+        <div>
+          <div style={{
+            paddingBottom:"56.25%", borderRadius:10, marginBottom:10,
+            background:"linear-gradient(90deg,#1c1c1c 25%,#2a2a2a 50%,#1c1c1c 75%)",
+            backgroundSize:"200% 100%", animation:"shimmer 1.4s infinite",
+          }} />
+          <div style={{height:13,background:"#1c1c1c",borderRadius:4,marginBottom:6,width:"88%"}} />
+          <div style={{height:10,background:"#1c1c1c",borderRadius:4,width:"52%"}} />
+        </div>
+      );
+    }
+
+    /* ── Video Card ── */
+    function Card({ v, onSelect }) {
+      const s  = v.snippet    || {};
+      const st = v.statistics || {};
+      const thumb = (s.thumbnails && (s.thumbnails.medium || s.thumbnails.default) || {}).url || "";
+      const [hov, setHov] = useState(false);
+
+      return (
+        <div
+          onClick={() => onSelect(v)}
+          onMouseEnter={() => setHov(true)}
+          onMouseLeave={() => setHov(false)}
+          style={{cursor:"pointer",userSelect:"none",transform:hov?"translateY(-2px)":"none",transition:"transform .18s"}}
+        >
+          <div style={{position:"relative",paddingBottom:"56.25%",borderRadius:10,overflow:"hidden",background:"#1a1a1a",marginBottom:9}}>
+            <img src={thumb} alt="" loading="lazy"
+              style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}} />
+            {hov && (
+              <div style={{position:"absolute",inset:0,background:"rgba(0,0,0,.3)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                <div style={{width:44,height:44,borderRadius:"50%",background:"rgba(220,0,0,.9)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,paddingLeft:3,color:"#fff"}}>▶</div>
+              </div>
+            )}
+          </div>
+          <p style={{margin:"0 0 4px",color:"#e8e8e8",fontSize:13,fontWeight:600,lineHeight:1.4,
+            display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>
+            {s.title}
+          </p>
+          <p style={{margin:"0 0 2px",color:"#999",fontSize:11}}>{s.channelTitle}</p>
+          {(st.viewCount||s.publishedAt) && (
+            <p style={{margin:0,color:"#666",fontSize:11}}>
+              {st.viewCount ? fmt(st.viewCount)+" views" : ""}
+              {st.viewCount&&s.publishedAt ? " · " : ""}
+              {ago(s.publishedAt)}
+            </p>
+          )}
+        </div>
+      );
+    }
+
+    /* ── Search Bar ── */
+    function Bar({ query, setQuery, onSearch }) {
+      return (
+        <div style={{flex:1,maxWidth:480,display:"flex",borderRadius:22,overflow:"hidden",border:"1px solid #2a2a2a",background:"#111"}}>
+          <input
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            onKeyDown={e => e.key==="Enter" && onSearch()}
+            placeholder="Search karo YouTube pe..."
+            style={{flex:1,background:"transparent",border:"none",color:"#fff",padding:"9px 16px",fontSize:13,outline:"none"}}
+          />
+          <button onClick={onSearch}
+            style={{background:"#222",border:"none",borderLeft:"1px solid #2a2a2a",color:"#aaa",padding:"0 16px",cursor:"pointer",fontSize:16}}>
+            🔍
+          </button>
+        </div>
+      );
+    }
+
+    /* ══════════════════════════════
+       MAIN APP
+    ══════════════════════════════ */
+    function App() {
+      const [ready,     setReady]     = useState(false);
+      const [query,     setQuery]     = useState("");
+      const [videos,    setVideos]    = useState([]);
+      const [selected,  setSelected]  = useState(null);
+      const [loading,   setLoading]   = useState(false);
+      const [error,     setError]     = useState("");
+      const [heading,   setHeading]   = useState("🔥 India Trending");
+      const [activeCat, setActiveCat] = useState("all");
+
+      // ✅ Load trending from BACKEND
+      async function loadTrending(catId) {
+        catId = catId || "all";
+        setLoading(true); 
+        setError(""); 
+        setSelected(null); 
+        setQuery("");
+        
+        try {
+          const params = new URLSearchParams();
+          if (catId !== "all") params.append("categoryId", catId);
+          params.append("maxResults", "24");
+          
+          const res = await fetch(`${BACKEND_URL}/api/trending?${params}`);
+          const data = await res.json();
+          
+          if (data.error) throw new Error(data.error);
+          
+          setVideos(data.items || []);
+          const cat = CATS.find(c => c.id === catId);
+          setHeading((cat?.icon || "📺") + " " + (cat?.label || "Videos"));
+          setActiveCat(catId);
+        } catch (e) {
+          setError(e.message);
+          setVideos([]);
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      // ✅ Search from BACKEND
+      async function doSearch() {
+        if (!query.trim()) return;
+        setLoading(true);
+        setError("");
+        setSelected(null);
+        
+        try {
+          const params = new URLSearchParams();
+          params.append("q", query);
+          params.append("maxResults", "24");
+          
+          const res = await fetch(`${BACKEND_URL}/api/search?${params}`);
+          const data = await res.json();
+          
+          if (data.error) throw new Error(data.error);
+          
+          setVideos(data.items || []);
+          setHeading('🔍 "' + query + '"');
+        } catch (e) {
+          setError(e.message);
+          setVideos([]);
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      function handleStart() {
+        loadTrending("all");
+        setReady(true);
+      }
+
+      function handleCat(cat) {
+        loadTrending(cat.id);
+      }
+
+      // ── SETUP SCREEN ──
+      if (!ready) {
+        return (
+          <div style={{minHeight:"100vh",background:"#080808",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+            <div style={{background:"#0f0f0f",border:"1px solid #1a1a1a",borderRadius:14,padding:28,maxWidth:380,width:"100%"}}>
+              <div style={{textAlign:"center",marginBottom:20}}>
+                <div style={{fontSize:40,marginBottom:10}}>▶️</div>
+                <h1 style={{color:"#fff",fontSize:20,fontWeight:800,margin:"0 0 6px"}}>YT Bina Ads</h1>
+                <p style={{color:"#999",fontSize:13,margin:0}}>YouTube bina ads ke, sirf ek click mein</p>
+              </div>
+
+              <div style={{background:"#111",border:"1px solid #1a1a1a",borderRadius:10,padding:14,marginBottom:16}}>
+                <p style={{color:"#5a8a5a",fontSize:12,fontWeight:700,margin:"0 0 8px"}}>✅ API Key Safe Hai</p>
+                <p style={{color:"#777",fontSize:11,lineHeight:1.6,margin:0}}>Backend par secure rakha gaya hai. Aapka browser mein API key send nahi hogi.</p>
+              </div>
+
+              <button
+                onClick={handleStart}
+                style={{width:"100%",background:"linear-gradient(135deg,#ff2020,#cc0000)",color:"#fff",border:"none",borderRadius:10,padding:14,fontSize:15,fontWeight:700,cursor:"pointer"}}>
+                Shuru Karo ▶
+              </button>
+            </div>
+          </div>
+        );
+      }
+
+      /* ── PLAYER SCREEN ── */
+      if (selected) {
+        const vid = getVid(selected);
+        const s   = selected.snippet    || {};
+        const st  = selected.statistics || {};
+        return (
+          <div style={{minHeight:"100vh",background:"#080808"}}>
+            {/* Header */}
+            <div style={{background:"#0f0f0f",borderBottom:"1px solid #1a1a1a",height:54,display:"flex",alignItems:"center",padding:"0 14px",gap:12,position:"sticky",top:0,zIndex:100}}>
+              <button onClick={() => setSelected(null)}
+                style={{background:"#1a1a1a",border:"none",color:"#ccc",width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:18,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                ←
+              </button>
+              <span style={{color:"#fff",fontWeight:800,fontSize:15}}>YT Bina Ads</span>
+              <div style={{marginLeft:"auto",flex:1,maxWidth:420,display:"flex"}}>
+                <Bar query={query} setQuery={setQuery} onSearch={() => { setSelected(null); doSearch(); }} />
+              </div>
+            </div>
+
+            <div style={{maxWidth:900,margin:"0 auto",padding:"16px 14px 48px"}}>
+              {/* Player */}
+              <div style={{position:"relative",paddingBottom:"56.25%",borderRadius:14,overflow:"hidden",background:"#000",marginBottom:16}}>
+                <iframe
+                  src={"https://www.youtube-nocookie.com/embed/"+vid+"?autoplay=1&rel=0&modestbranding=1&iv_load_policy=3"}
+                  style={{position:"absolute",inset:0,width:"100%",height:"100%",border:"none"}}
+                  allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                  allowFullScreen
+                  title={s.title}
+                />
+              </div>
+
+              <h2 style={{color:"#fff",fontSize:16,fontWeight:700,margin:"0 0 12px",lineHeight:1.45}}>{s.title}</h2>
+              <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:16}}>
+                <span style={{background:"#1a1a1a",border:"1px solid #2a2a2a",color:"#ddd",borderRadius:20,padding:"6px 14px",fontSize:12,fontWeight:600}}>📺 {s.channelTitle}</span>
+                {st.viewCount && <span style={{background:"#1a1a1a",border:"1px solid #2a2a2a",color:"#aaa",borderRadius:20,padding:"6px 14px",fontSize:12}}>👁 {fmt(st.viewCount)} views</span>}
+                {st.likeCount && <span style={{background:"#1a1a1a",border:"1px solid #2a2a2a",color:"#aaa",borderRadius:20,padding:"6px 14px",fontSize:12}}>👍 {fmt(st.likeCount)}</span>}
+              </div>
+
+              {s.description && (
+                <details style={{background:"#111",border:"1px solid #1f1f1f",borderRadius:12,padding:"12px 16px",marginBottom:14}}>
+                  <summary style={{color:"#bbb",cursor:"pointer",fontSize:12,fontWeight:600}}>📋 Description</summary>
+                  <p style={{color:"#888",fontSize:12,lineHeight:1.8,whiteSpace:"pre-line",margin:"10px 0 0"}}>
+                    {s.description.slice(0,700)}{s.description.length>700?"…":""}
+                  </p>
+                </details>
+              )}
+
+              <div style={{background:"#0d1a0d",border:"1px solid #1a2e1a",borderRadius:10,padding:"10px 14px",fontSize:11,color:"#5a8a5a"}}>
+                ✅ Embed player chal raha hai — banner ads, sidebar ads, overlay ads nahi hain. Pre-roll ads sirf creator ki settings pe depend karti hain.
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      /* ── MAIN SCREEN ── */
+      return (
+        <div style={{minHeight:"100vh",background:"#080808"}}>
+          {/* Header */}
+          <div style={{background:"#0f0f0f",borderBottom:"1px solid #1a1a1a",height:54,display:"flex",alignItems:"center",padding:"0 14px",gap:12,position:"sticky",top:0,zIndex:100}}>
+            <div style={{display:"flex",alignItems:"center",gap:7,flexShrink:0}}>
+              <div style={{width:28,height:28,borderRadius:7,background:"linear-gradient(135deg,#ff2020,#cc0000)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,paddingLeft:1,color:"#fff"}}>▶</div>
+              <span style={{color:"#fff",fontWeight:800,fontSize:15,letterSpacing:-0.3}}>YT Bina Ads</span>
+            </div>
+            <div style={{flex:1,display:"flex",justifyContent:"center"}}>
+              <Bar query={query} setQuery={setQuery} onSearch={doSearch} />
+            </div>
+            <button
+              onClick={() => { setActiveCat("all"); loadTrending("all"); }}
+              style={{background:"#1a1a1a",border:"1px solid #2a2a2a",color:"#aaa",borderRadius:8,padding:"6px 12px",cursor:"pointer",fontSize:13,flexShrink:0}}>
+              🔄
+            </button>
+          </div>
+
+          {/* Categories */}
+          <div style={{overflowX:"auto",whiteSpace:"nowrap",padding:"10px 14px",borderBottom:"1px solid #111"}}>
+            {CATS.map(cat => (
+              <button key={cat.id} onClick={() => handleCat(cat)}
+                style={{
+                  display:"inline-flex",alignItems:"center",gap:5,
+                  background: activeCat===cat.id ? "#fff" : "#1a1a1a",
+                  color:      activeCat===cat.id ? "#000" : "#bbb",
+                  border:     activeCat===cat.id ? "none" : "1px solid #2a2a2a",
+                  borderRadius:8, padding:"7px 14px", fontSize:12,
+                  fontWeight: activeCat===cat.id ? 700 : 400,
+                  cursor:"pointer", marginRight:8, transition:"all .15s", flexShrink:0,
+                }}>
+                {cat.icon} {cat.label}
+              </button>
+            ))}
+          </div>
+
+          <div style={{maxWidth:1200,margin:"0 auto",padding:"18px 14px 48px"}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:18}}>
+              <h2 style={{color:"#fff",margin:0,fontSize:15,fontWeight:700}}>{heading}</h2>
+              {videos.length>0 && !loading && <span style={{color:"#444",fontSize:11}}>{videos.length} videos</span>}
+            </div>
+
+            {error && (
+              <div style={{background:"#180000",border:"1px solid #3a0000",borderRadius:12,padding:"14px 16px",color:"#ff7070",fontSize:13,marginBottom:20}}>
+                ⚠️ {error}
+                <br/><span style={{fontSize:11,color:"#cc5555",display:"block",marginTop:4}}>Backend check karo ya quota limit ho gayi</span>
+              </div>
+            )}
+
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:"22px 16px"}}>
+              {loading
+                ? Array(12).fill(0).map((_,i) => <Skeleton key={i} />)
+                : videos.map(v => <Card key={getVid(v)||Math.random()} v={v} onSelect={setSelected} />)
+              }
+            </div>
+
+            {!loading && !error && videos.length===0 && (
+              <div style={{textAlign:"center",padding:"60px 20px",color:"#333"}}>
+                <div style={{fontSize:48,marginBottom:12}}>📺</div>
+                <p style={{fontSize:14}}>Kuch nahi mila — search karo ya category choose karo</p>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    /* Mount */
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(React.createElement(App));
+  </script>
+</body>
+</html>
