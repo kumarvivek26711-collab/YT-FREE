@@ -6,6 +6,12 @@
   <title>YT Bina Ads 📺</title>
   <meta name="description" content="YouTube content bina ads ke — clean aur fast" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>▶</text></svg>" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#cc0000" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="YT Bina Ads" />
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -369,6 +375,41 @@
     /* Mount */
     const root = ReactDOM.createRoot(document.getElementById("root"));
     root.render(React.createElement(App));
+  </script>
+
+  <!-- Service Worker Registration for PWA -->
+  <script>
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js')
+          .then(registration => {
+            console.log('✅ Service Worker registered:', registration);
+            
+            // Check for updates
+            setInterval(() => {
+              registration.update();
+            }, 60000); // Check every minute
+          })
+          .catch(error => {
+            console.log('Service Worker registration failed:', error);
+          });
+      });
+    }
+
+    // Prompt user to install app
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      console.log('💾 App can be installed');
+    });
+
+    // Handle app installation
+    window.addEventListener('appinstalled', () => {
+      console.log('🎉 App installed!');
+      deferredPrompt = null;
+    });
   </script>
 </body>
 </html>
