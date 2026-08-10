@@ -1,0 +1,62 @@
+{
+  "name": "YT Bina Ads - YouTube Videos without Ads",
+  "short_name": "YT Bina Ads",
+  "description": "YouTube videos bina ads ke - Clean and Fast",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#080808",
+  "theme_color": "#cc0000",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23cc0000' width='192' height='192'/><text y='140' font-size='120' font-weight='bold' fill='white' text-anchor='middle' x='96'>▶</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%23cc0000' width='512' height='512'/><text y='380' font-size='320' font-weight='bold' fill='white' text-anchor='middle' x='256'>▶</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["video", "entertainment"],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'><rect fill='%23080808' width='540' height='720'/><text y='360' font-size='80' fill='%23fff' text-anchor='middle' x='270'>YT Bina Ads</text></svg>",
+      "sizes": "540x720",
+      "type": "image/svg+xml",
+      "form_factor": "narrow"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Trending Videos",
+      "short_name": "Trending",
+      "description": "Watch trending videos",
+      "url": "/?tab=trending",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect fill='%23cc0000' width='96' height='96'/><text y='70' font-size='60' fill='white' text-anchor='middle' x='48'>🔥</text></svg>",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Search Videos",
+      "short_name": "Search",
+      "description": "Search YouTube videos",
+      "url": "/?tab=search",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect fill='%23cc0000' width='96' height='96'/><text y='70' font-size='60' fill='white' text-anchor='middle' x='48'>🔍</text></svg>",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false
+}
