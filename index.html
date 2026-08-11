@@ -5,9 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Jugadu Tube 📺</title>
   <meta name="description" content="Clean YouTube without ads" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23ffffff' rx='50' width='100' height='100'/><text y='75' font-size='70' font-weight='bold' fill='%23111' text-anchor='middle' x='54'>▶</text></svg>" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23ff0055' rx='50' width='100' height='100'/><text y='75' font-size='70' font-weight='bold' fill='%23fff' text-anchor='middle' x='54'>▶</text></svg>" />
   <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#ffffff" />
   
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -15,58 +14,90 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   
   <style>
+    /* 🔥 DARK & LIGHT MODE VARIABLES 🔥 */
+    :root {
+      --bg-main: #f5f5f7;
+      --bg-header: rgba(255, 255, 255, 0.95);
+      --bg-card: #ffffff;
+      --bg-hover: #f2f2f7;
+      --text-main: #1d1d1f;
+      --text-muted: #666666;
+      --border: #e5e5ea;
+      --accent: #ff0055;
+    }
+    [data-theme="dark"] {
+      --bg-main: #0a0a0a;
+      --bg-header: rgba(10, 10, 10, 0.95);
+      --bg-card: #141414;
+      --bg-hover: #1f1f1f;
+      --text-main: #ffffff;
+      --text-muted: #aaaaaa;
+      --border: #222222;
+      --accent: #ff0055;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
-    body, html { background: #f5f5f7; color: #1d1d1f; -webkit-tap-highlight-color: transparent; width: 100%; height: 100%; overflow-x: hidden; scroll-behavior: smooth; }
+    body, html { background: var(--bg-main); color: var(--text-main); -webkit-tap-highlight-color: transparent; width: 100%; height: 100%; overflow-x: hidden; scroll-behavior: smooth; transition: background 0.3s, color 0.3s; }
     ::-webkit-scrollbar { width: 0px; display: none; } 
 
-    /* Compact Header */
-    .glass-header { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid #e5e5ea; position: sticky; top: 0; z-index: 100; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-    .brand-btn { display: flex; align-items: center; gap: 8px; cursor: pointer; }
-    .logo-box { width: 32px; height: 32px; border-radius: 8px; background: #1d1d1f; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #fff; font-weight: 800; flex-shrink: 0; }
-    .brand-text { font-weight: 700; font-size: 16px; color: #1d1d1f; }
+    /* SPLASH SCREEN ANIMATION */
+    .splash-screen { position: fixed; inset: 0; background: var(--bg-main); z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; animation: fadeOut 0.5s ease 1.8s forwards; pointer-events: none; }
+    @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
+    .splash-logo { font-size: 60px; margin-bottom: 10px; animation: bounce 1s infinite alternate; }
+    @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-20px); } }
+    .splash-text { font-size: 24px; font-weight: 800; color: var(--text-main); letter-spacing: 1px; }
 
-    /* Search Bar */
+    /* Compact Header */
+    .glass-header { background: var(--bg-header); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; transition: 0.3s; }
+    .brand-btn { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .logo-box { width: 32px; height: 32px; border-radius: 8px; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 14px; color: #fff; font-weight: 800; flex-shrink: 0; }
+    .brand-text { font-weight: 700; font-size: 16px; color: var(--text-main); }
+
+    /* Search & Theme Controls */
     .search-wrap { display: flex; justify-content: flex-end; align-items: center; flex: 1; position: relative; gap: 6px; }
     .search-box { display: flex; align-items: center; background: transparent; border-radius: 20px; transition: all 0.3s; overflow: hidden; height: 38px; width: 38px; }
-    .search-box.open { width: 100%; max-width: 250px; background: #fff; border: 1px solid #d1d1d6; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-    .search-input { flex: 1; border: none; background: transparent; color: #111; padding: 0 0 0 12px; font-size: 13px; outline: none; font-weight: 500; width: 0; opacity: 0; transition: opacity 0.3s; }
+    .search-box.open { width: 100%; max-width: 250px; background: var(--bg-card); border: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    .search-input { flex: 1; border: none; background: transparent; color: var(--text-main); padding: 0 0 0 12px; font-size: 13px; outline: none; font-weight: 500; width: 0; opacity: 0; transition: 0.3s; }
     .search-box.open .search-input { width: 100%; opacity: 1; }
-    .lens-btn { width: 38px; height: 38px; background: transparent; border: none; color: #333; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .suggest-box { position: absolute; top: 46px; right: 0; width: 100%; max-width: 300px; background: #fff; border: 1px solid #e5e5ea; border-radius: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); z-index: 200; overflow: hidden; }
-    .suggest-item { padding: 10px 14px; cursor: pointer; color: #111; font-size: 13px; border-bottom: 1px solid #f2f2f7; display: flex; align-items: center; gap: 8px; font-weight: 500; }
+    
+    .icon-btn { width: 38px; height: 38px; background: transparent; border: none; color: var(--text-main); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 50%; }
+    .icon-btn:hover { background: var(--bg-hover); }
+    
+    .suggest-box { position: absolute; top: 46px; right: 0; width: 100%; max-width: 300px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); z-index: 200; overflow: hidden; }
+    .suggest-item { padding: 10px 14px; cursor: pointer; color: var(--text-main); font-size: 13px; border-bottom: 1px solid var(--bg-hover); display: flex; align-items: center; gap: 8px; font-weight: 500; }
 
-    /* Compact Categories */
-    .cat-container { display: flex; gap: 8px; overflow-x: auto; padding: 8px 12px; background: #fff; border-bottom: 1px solid #eaeaea; }
+    /* Categories */
+    .cat-container { display: flex; gap: 8px; overflow-x: auto; padding: 8px 12px; background: var(--bg-main); border-bottom: 1px solid var(--border); }
     .cat-container::-webkit-scrollbar { display: none; }
-    .cat-btn { background: #f2f2f7; color: #555; border: none; border-radius: 16px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: 0.2s; display: flex; gap: 4px; align-items: center; }
-    .cat-btn.active { background: #1d1d1f; color: #fff; }
+    .cat-btn { background: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border); border-radius: 16px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: 0.2s; display: flex; gap: 4px; align-items: center; }
+    .cat-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
     .main-content { padding-bottom: 70px; }
 
-    /* Compact Video Grid */
+    /* Grid & Cards */
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; padding: 12px; max-width: 1200px; margin: 0 auto; }
-    .card { background: #fff; border: 1px solid #eaeaea; border-radius: 12px; overflow: hidden; cursor: pointer; transition: 0.2s; }
-    .thumb-wrap { position: relative; padding-bottom: 56.25%; background: #f2f2f7; overflow: hidden; }
+    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; cursor: pointer; transition: 0.2s; }
+    .thumb-wrap { position: relative; padding-bottom: 56.25%; background: var(--bg-hover); overflow: hidden; }
     .thumb-wrap img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
     .card-info { padding: 10px; }
-    .vid-title { color: #111; font-size: 13px; font-weight: 600; line-height: 1.35; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .vid-channel { color: #555; font-size: 11px; font-weight: 500; display: flex; align-items: center; gap: 4px; }
-    .vid-stats { color: #888; font-size: 11px; font-weight: 500; margin-top: 3px; }
+    .vid-title { color: var(--text-main); font-size: 13px; font-weight: 600; line-height: 1.35; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .vid-channel { color: var(--text-muted); font-size: 11px; font-weight: 500; display: flex; align-items: center; gap: 4px; }
+    .vid-stats { color: var(--text-muted); font-size: 11px; font-weight: 500; margin-top: 3px; }
 
     /* Ad Banners */
-    .ad-banner { background: #fff; border: 1px dashed #ccc; padding: 20px; text-align: center; color: #aaa; font-size: 12px; font-weight: 600; margin: 10px 12px; border-radius: 8px; min-height: 80px; display: flex; align-items: center; justify-content: center; }
+    .ad-banner { background: var(--bg-card); border: 1px dashed var(--text-muted); padding: 20px; text-align: center; color: var(--text-muted); font-size: 12px; font-weight: 600; margin: 10px 12px; border-radius: 8px; min-height: 80px; display: flex; align-items: center; justify-content: center; }
 
-    /* Video Player Action Buttons */
+    /* Action Buttons */
     .action-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
-    .action-btn { background: #f2f2f7; border: none; padding: 6px 14px; border-radius: 20px; font-size: 12px; color: #111; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
-    .action-btn.active { background: #ff0055; color: #fff; }
+    .action-btn { background: var(--bg-hover); border: 1px solid var(--border); padding: 6px 14px; border-radius: 20px; font-size: 12px; color: var(--text-main); font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
+    .action-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
     /* Bottom Navigation */
-    .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 56px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: 1px solid #e5e5ea; display: flex; justify-content: space-around; align-items: center; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); }
-    .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #888; font-size: 10px; font-weight: 600; cursor: pointer; width: 33%; height: 100%; gap: 2px; }
-    .nav-item.active { color: #1d1d1f; }
+    .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 56px; background: var(--bg-header); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); }
+    .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); font-size: 10px; font-weight: 600; cursor: pointer; width: 33%; height: 100%; gap: 2px; transition: 0.2s; }
+    .nav-item.active { color: var(--text-main); }
     .nav-icon { font-size: 20px; transition: transform 0.2s; }
-    .nav-item.active .nav-icon { transform: scale(1.15); color: #ff0055; }
+    .nav-item.active .nav-icon { transform: scale(1.15); color: var(--accent); }
 
     /* Shorts Clean UI */
     .shorts-container { height: calc(100vh - 56px); overflow-y: scroll; scroll-snap-type: y mandatory; scroll-behavior: smooth; background: #000; }
@@ -94,17 +125,30 @@
     ];
 
     const POPULAR_TERMS = ["New Song", "Latest Movie", "Comedy", "News Live", "Cricket Highlights", "Bhojpuri Video", "Hindi Dubbed", "Tech Review Hindi", "Vlog India"];
-    
-    // Default Seeds if User has no History
     const DEFAULT_SEEDS = ["latest hindi songs", "trending india new", "new bollywood movie", "indian comedy video", "tech reviews hindi new", "indian vlogs new", "cricket india highlights"];
-    
-    // Shorts Seeds (Only for Shorts Tab)
     const SHORTS_SEEDS = ["#shorts viral india", "#shorts hindi comedy", "#shorts trending song", "#shorts dance india", "#shorts facts hindi"];
 
     function getVid(v) { return typeof v.id === "string" ? v.id : (v.id?.videoId || ""); }
     function fmt(n) { if (!n) return ""; const x = parseInt(n); if (x >= 1e9) return (x/1e9).toFixed(1)+"B"; if (x >= 1e6) return (x/1e6).toFixed(1)+"M"; if (x >= 1e3) return (x/1e3).toFixed(1)+"K"; return String(x); }
     function ago(d) { if (!d) return ""; const days = Math.floor((Date.now() - new Date(d)) / 86400000); if (!days) return "New"; if (days < 7) return days + "d ago"; if (days < 30) return Math.floor(days/7) + "w ago"; return Math.floor(days/30) + "mo ago"; }
     function App() {
+      // Splash Screen State
+      const [showSplash, setShowSplash] = useState(true);
+
+      // Theme State (Dark / Light)
+      const [theme, setTheme] = useState(() => localStorage.getItem("yt_theme") || "light");
+      
+      useEffect(() => {
+        document.documentElement.setAttribute("data-theme", theme);
+        localStorage.setItem("yt_theme", theme);
+        
+        // Hide Splash Screen after 1.8 seconds
+        const splashTimer = setTimeout(() => setShowSplash(false), 1800);
+        return () => clearTimeout(splashTimer);
+      }, [theme]);
+
+      const toggleTheme = () => setTheme(prev => prev === "light" ? "dark" : "light");
+
       const [currentTab, setCurrentTab] = useState("home");
       const [videos, setVideos] = useState([]);
       const [selected, setSelected] = useState(null);
@@ -115,16 +159,15 @@
       const [searchOpen, setSearchOpen] = useState(false);
       const [suggestions, setSuggestions] = useState([]);
       
-      // Saved Library State
+      // Saved & History Library States
       const [savedVids, setSavedVids] = useState(() => {
-        const saved = localStorage.getItem("yt_saved_vids");
-        return saved ? JSON.parse(saved) : [];
+        const saved = localStorage.getItem("yt_saved_vids"); return saved ? JSON.parse(saved) : [];
       });
-
-      // 🔥 USER INTEREST HISTORY (To personalize feed)
+      const [historyVids, setHistoryVids] = useState(() => {
+        const hist = localStorage.getItem("yt_watch_history"); return hist ? JSON.parse(hist) : [];
+      });
       const [searchHistory, setSearchHistory] = useState(() => {
-        const history = localStorage.getItem("yt_search_history");
-        return history ? JSON.parse(history) : [];
+        const history = localStorage.getItem("yt_search_history"); return history ? JSON.parse(history) : [];
       });
 
       // Shorts State
@@ -134,58 +177,39 @@
 
       function handleInputChange(val) {
         setQuery(val);
-        if(val.trim().length > 0) {
-          setSuggestions(POPULAR_TERMS.filter(t => t.toLowerCase().includes(val.toLowerCase())));
-        } else setSuggestions([]);
+        if(val.trim().length > 0) setSuggestions(POPULAR_TERMS.filter(t => t.toLowerCase().includes(val.toLowerCase())));
+        else setSuggestions([]);
       }
 
       function executeSearch(searchWord) {
         setQuery(searchWord); setSuggestions([]); setSearchOpen(false);
         setActiveCat(""); setCurrentTab("home"); setSelected(null);
         
-        // Save Search to User's Personal History for Future Recommendations
         const updatedHistory = [searchWord, ...searchHistory.filter(w => w !== searchWord)].slice(0, 10);
-        setSearchHistory(updatedHistory);
-        localStorage.setItem("yt_search_history", JSON.stringify(updatedHistory));
+        setSearchHistory(updatedHistory); localStorage.setItem("yt_search_history", JSON.stringify(updatedHistory));
 
-        setTimeout(() => {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-          document.documentElement.scrollTop = 0;
-        }, 100);
-        
+        setTimeout(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); document.documentElement.scrollTop = 0; }, 100);
         fetchVideos(null, false, searchWord);
       }
 
-      // 🔥 MAIN SMART FETCH LOGIC (Filters out shorts, adds Hindi/Latest, uses History)
       async function fetchVideos(cat, isAppend = false, customQuery = null) {
         if (isAppend) setAppending(true);
         else { setLoading(true); setVideos([]); }
         
         try {
-          let url = ""; 
-          let finalQuery = customQuery !== null ? customQuery : query;
-          
-          // Personalization: Use Search History if available, else Default
+          let url = ""; let finalQuery = customQuery !== null ? customQuery : query;
           let userSeeds = searchHistory.length > 0 ? searchHistory : DEFAULT_SEEDS;
           let randomSeed = userSeeds[Math.floor(Math.random() * userSeeds.length)];
 
           if (finalQuery) {
             let backendQuery = finalQuery;
-            // Force Hindi and Exclude Shorts
             if (!backendQuery.toLowerCase().includes("hindi")) backendQuery += " Hindi";
-            backendQuery += " -shorts"; // <--- NO SHORTS FILTER
+            backendQuery += " -shorts";
             url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(backendQuery)}&maxResults=24`;
           } else if (cat && cat !== "all") {
-            if (isAppend) {
-               let catLabel = CATS.find(c => c.id === cat).label;
-               url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(catLabel + " Hindi latest -shorts")}&maxResults=24`;
-            } else {
-               // Trending API doesn't support -shorts query well, so we switch to Search API for categories to ensure strict filtering
-               let catLabel = CATS.find(c => c.id === cat).label;
-               url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(catLabel + " Hindi latest -shorts")}&maxResults=24`;
-            }
+            let catLabel = CATS.find(c => c.id === cat).label;
+            url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(catLabel + " Hindi latest -shorts")}&maxResults=24`;
           } else {
-             // Home Feed -> Personalized + Latest + Hindi + NO SHORTS
              url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(randomSeed + " Hindi latest -shorts")}&maxResults=24`;
           }
           
@@ -211,30 +235,42 @@
         return () => window.removeEventListener('scroll', handleScroll);
       }, [loading, appending, activeCat, query, videos.length, currentTab]);
 
+      // 🔥 VIP Video Click & Watch History Saver
       function handleVideoClick(v) {
         setSelected(v);
+        
+        // Save to Watch History (Keep max 40 videos)
+        const updatedHistory = [v, ...historyVids.filter(vid => getVid(vid) !== getVid(v))].slice(0, 40);
+        setHistoryVids(updatedHistory);
+        localStorage.setItem("yt_watch_history", JSON.stringify(updatedHistory));
+
         setTimeout(() => {
           window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
-          document.body.scrollTop = 0; 
-          document.documentElement.scrollTop = 0;
+          document.body.scrollTop = 0; document.documentElement.scrollTop = 0;
         }, 100);
       }
 
       function handleChannelClick(channelName) {
-        setSelected(null);
-        executeSearch(channelName + " channel videos");
+        setSelected(null); executeSearch(channelName + " channel videos");
       }
 
       function toggleSave(v) {
         let updatedList;
-        const alreadySaved = savedVids.some(vid => getVid(vid) === getVid(v));
-        if (alreadySaved) {
-          updatedList = savedVids.filter(vid => getVid(vid) !== getVid(v));
+        if (savedVids.some(vid => getVid(vid) === getVid(v))) updatedList = savedVids.filter(vid => getVid(vid) !== getVid(v));
+        else updatedList = [v, ...savedVids];
+        setSavedVids(updatedList); localStorage.setItem("yt_saved_vids", JSON.stringify(updatedList));
+      }
+
+      // 🔥 NATIVE SHARE API
+      async function handleShare(v) {
+        const url = `https://youtube.com/watch?v=${getVid(v)}`;
+        if (navigator.share) {
+          try { await navigator.share({ title: v.snippet.title, text: 'Check out this video on Jugadu Tube!', url: url }); }
+          catch (e) { console.log("Share cancelled"); }
         } else {
-          updatedList = [v, ...savedVids];
+          navigator.clipboard.writeText(url);
+          alert("Link copied to clipboard! 📋");
         }
-        setSavedVids(updatedList);
-        localStorage.setItem("yt_saved_vids", JSON.stringify(updatedList));
       }
 
       function goFullscreen() {
@@ -252,7 +288,7 @@
         if (tabName === "home" && currentTab === "home") {
           setSelected(null); setQuery(""); setActiveCat("all");
           setTimeout(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, 100);
-          fetchVideos("all"); // This will now fetch new random things based on history
+          fetchVideos("all"); 
         } else {
           setCurrentTab(tabName);
         }
@@ -273,9 +309,7 @@
         setLoadingShorts(false);
       }
 
-      useEffect(() => {
-        if (currentTab === "shorts" && shortsVids.length === 0) fetchShortsData();
-      }, [currentTab]);
+      useEffect(() => { if (currentTab === "shorts" && shortsVids.length === 0) fetchShortsData(); }, [currentTab]);
 
       function handleShortsScroll(e) {
         const container = e.target;
@@ -289,17 +323,14 @@
       const renderGrid = (videoList) => (
         <div className="grid">
           {videoList.map((v, index) => {
-            const s = v.snippet || {};
-            const st = v.statistics || {};
+            const s = v.snippet || {}; const st = v.statistics || {};
             return (
               <div key={getVid(v) + index} className="card" onClick={() => handleVideoClick(v)}>
                 <div className="thumb-wrap"><img src={s.thumbnails?.medium?.url || ""} loading="lazy" /></div>
                 <div className="card-info">
                   <div className="vid-title">{s.title}</div>
                   <div className="vid-channel">👤 {s.channelTitle}</div>
-                  <div className="vid-stats">
-                    {st.viewCount ? fmt(st.viewCount) + " views • " : ""} {ago(s.publishedAt)}
-                  </div>
+                  <div className="vid-stats">{st.viewCount ? fmt(st.viewCount) + " views • " : ""} {ago(s.publishedAt)}</div>
                 </div>
               </div>
             );
@@ -309,6 +340,14 @@
 
       return (
         <div>
+          {/* 🔥 SPLASH SCREEN */}
+          {showSplash && (
+            <div className="splash-screen">
+              <div className="splash-logo">▶️</div>
+              <div className="splash-text">Jugadu Tube</div>
+            </div>
+          )}
+
           {currentTab !== "shorts" && (
             <div className="glass-header">
               <div className="brand-btn" onClick={() => handleNavClick("home")}>
@@ -317,12 +356,19 @@
               </div>
               
               <div className="search-wrap">
+                {/* 🌙 Theme Toggle Button */}
+                {!searchOpen && (
+                  <button className="icon-btn" onClick={toggleTheme}>
+                    {theme === "light" ? "🌙" : "☀️"}
+                  </button>
+                )}
+
                 <div className={`search-box ${searchOpen ? 'open' : ''}`}>
                   <input className="search-input" value={query} onChange={e => handleInputChange(e.target.value)} 
                     placeholder="Search movies..." 
                     onKeyDown={e => { if(e.key==="Enter" && query.trim()){ executeSearch(query); } }} 
                     ref={input => searchOpen && input && input.focus()} />
-                  <button className="lens-btn" onClick={() => {
+                  <button className="icon-btn" onClick={() => {
                     if (searchOpen && query.trim()) executeSearch(query);
                     else { setSearchOpen(!searchOpen); setSuggestions([]); }
                   }}>🔍</button>
@@ -351,9 +397,9 @@
                         allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen />
                     </div>
                     
-                    <h2 style={{fontSize:"15px", fontWeight:700, margin:"12px 0 4px", color:"#111", lineHeight:"1.4"}}>{selected.snippet?.title}</h2>
+                    <h2 style={{fontSize:"15px", fontWeight:700, margin:"12px 0 4px", color:"var(--text-main)", lineHeight:"1.4"}}>{selected.snippet?.title}</h2>
                     
-                    <div style={{fontSize:"12px", color:"#666", marginBottom:"10px", fontWeight:"500"}}>
+                    <div style={{fontSize:"12px", color:"var(--text-muted)", marginBottom:"10px", fontWeight:"500"}}>
                       {selected.statistics?.viewCount ? fmt(selected.statistics.viewCount) + " views • " : ""} {ago(selected.snippet?.publishedAt)}
                     </div>
                     
@@ -366,6 +412,11 @@
                         {savedVids.some(vid => getVid(vid) === getVid(selected)) ? "❤️ Saved" : "🤍 Save"}
                       </button>
                       
+                      {/* 🔥 NEW NATIVE SHARE BUTTON */}
+                      <button className="action-btn" onClick={() => handleShare(selected)}>
+                        📤 Share
+                      </button>
+
                       <button className="action-btn" onClick={goFullscreen}>
                         🔄 Rotate
                       </button>
@@ -388,15 +439,15 @@
 
                 {!selected && <div className="ad-banner" style={{margin:"12px"}}>💰 Top Ad Banner Space</div>}
 
-                {selected && <h3 style={{padding:"0 12px", marginTop:"10px", color:"#111", fontSize:"14px", fontWeight:700}}>🔥 Up Next</h3>}
+                {selected && <h3 style={{padding:"0 12px", marginTop:"10px", color:"var(--text-main)", fontSize:"14px", fontWeight:700}}>🔥 Up Next</h3>}
 
                 {loading ? (
-                  <div style={{textAlign:"center", padding:"40px", color:"#888"}}>Loading... ⏳</div>
+                  <div style={{textAlign:"center", padding:"40px", color:"var(--text-muted)"}}>Loading... ⏳</div>
                 ) : (
                   renderGrid(videos.filter(v => getVid(v) !== (selected ? getVid(selected) : "")))
                 )}
                 
-                {appending && <div style={{textAlign:"center", padding:"16px", color:"#888", fontSize:"12px"}}>Loading more... ⏳</div>}
+                {appending && <div style={{textAlign:"center", padding:"16px", color:"var(--text-muted)", fontSize:"12px"}}>Loading more... ⏳</div>}
               </div>
             )}
 
@@ -429,19 +480,28 @@
                 <div style={{display:"flex", alignItems:"center", gap:"10px", marginBottom:"16px"}}>
                   <div style={{fontSize:"36px"}}>👤</div>
                   <div>
-                    <h2 style={{color:"#111", fontSize:"18px", fontWeight:"700"}}>My Library</h2>
-                    <p style={{color:"#666", fontSize:"12px"}}>Your locally saved videos</p>
+                    <h2 style={{color:"var(--text-main)", fontSize:"18px", fontWeight:"700"}}>My Library</h2>
+                    <p style={{color:"var(--text-muted)", fontSize:"12px"}}>Your local safe space</p>
                   </div>
                 </div>
                 
                 <div className="ad-banner" style={{margin:"0 0 16px 0"}}>💰 Library Ad Space</div>
 
-                <h3 style={{color:"#111", fontSize:"15px", fontWeight:700, marginBottom:"12px"}}>❤️ Liked & Saved Videos</h3>
-                
+                {/* 🔥 WATCH HISTORY SECTION */}
+                <h3 style={{color:"var(--text-main)", fontSize:"15px", fontWeight:700, marginBottom:"12px"}}>🕒 Watch History</h3>
+                {historyVids.length === 0 ? (
+                  <p style={{color:"var(--text-muted)", fontSize:"12px", marginBottom:"20px"}}>Koi history nahi hai.</p>
+                ) : (
+                  <div style={{marginBottom: "24px"}}>
+                     {renderGrid(historyVids.slice(0,4))} {/* Show only recent 4 in grid */}
+                  </div>
+                )}
+
+                <h3 style={{color:"var(--text-main)", fontSize:"15px", fontWeight:700, marginBottom:"12px"}}>❤️ Liked & Saved</h3>
                 {savedVids.length === 0 ? (
-                  <div style={{textAlign:"center", padding:"40px 20px", background:"#fff", borderRadius:"12px", border:"1px solid #eaeaea"}}>
+                  <div style={{textAlign:"center", padding:"40px 20px", background:"var(--bg-card)", borderRadius:"12px", border:"1px solid var(--border)"}}>
                     <div style={{fontSize:"40px", marginBottom:"10px"}}>🤍</div>
-                    <p style={{color:"#666", fontSize:"13px"}}>Aapne abhi tak koi video save nahi ki hai.</p>
+                    <p style={{color:"var(--text-muted)", fontSize:"13px"}}>Aapne abhi tak koi video save nahi ki hai.</p>
                   </div>
                 ) : (
                   renderGrid(savedVids)
