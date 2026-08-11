@@ -20,12 +20,7 @@
     ::-webkit-scrollbar { width: 0px; display: none; } 
 
     /* Compact Header */
-    .glass-header {
-      background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid #e5e5ea; position: sticky; top: 0; z-index: 100;
-      padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px;
-    }
-    
+    .glass-header { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid #e5e5ea; position: sticky; top: 0; z-index: 100; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
     .brand-btn { display: flex; align-items: center; gap: 8px; cursor: pointer; }
     .logo-box { width: 32px; height: 32px; border-radius: 8px; background: #1d1d1f; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #fff; font-weight: 800; flex-shrink: 0; }
     .brand-text { font-weight: 700; font-size: 16px; color: #1d1d1f; }
@@ -37,7 +32,6 @@
     .search-input { flex: 1; border: none; background: transparent; color: #111; padding: 0 0 0 12px; font-size: 13px; outline: none; font-weight: 500; width: 0; opacity: 0; transition: opacity 0.3s; }
     .search-box.open .search-input { width: 100%; opacity: 1; }
     .lens-btn { width: 38px; height: 38px; background: transparent; border: none; color: #333; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    
     .suggest-box { position: absolute; top: 46px; right: 0; width: 100%; max-width: 300px; background: #fff; border: 1px solid #e5e5ea; border-radius: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); z-index: 200; overflow: hidden; }
     .suggest-item { padding: 10px 14px; cursor: pointer; color: #111; font-size: 13px; border-bottom: 1px solid #f2f2f7; display: flex; align-items: center; gap: 8px; font-weight: 500; }
 
@@ -56,16 +50,16 @@
     .thumb-wrap img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
     .card-info { padding: 10px; }
     .vid-title { color: #111; font-size: 13px; font-weight: 600; line-height: 1.35; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .vid-channel { color: #666; font-size: 11px; font-weight: 500; display: flex; align-items: center; gap: 4px; }
-    
-    /* Ad Banners - More Space */
+    .vid-channel { color: #555; font-size: 11px; font-weight: 500; display: flex; align-items: center; gap: 4px; }
+    .vid-stats { color: #888; font-size: 11px; font-weight: 500; margin-top: 3px; }
+
+    /* Ad Banners */
     .ad-banner { background: #fff; border: 1px dashed #ccc; padding: 20px; text-align: center; color: #aaa; font-size: 12px; font-weight: 600; margin: 10px 12px; border-radius: 8px; min-height: 80px; display: flex; align-items: center; justify-content: center; }
 
     /* Video Player Action Buttons */
     .action-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
     .action-btn { background: #f2f2f7; border: none; padding: 6px 14px; border-radius: 20px; font-size: 12px; color: #111; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
     .action-btn.active { background: #ff0055; color: #fff; }
-    .action-btn:hover { filter: brightness(0.95); }
 
     /* Bottom Navigation */
     .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 56px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: 1px solid #e5e5ea; display: flex; justify-content: space-around; align-items: center; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); }
@@ -99,11 +93,17 @@
       { id: "22",  icon: "👤", label: "Vlogs" }
     ];
 
-    const POPULAR_TERMS = ["Song", "Movie", "Comedy", "News Live", "Cricket Highlights", "Bhojpuri Song", "Hindi Dubbed", "Gaming", "Tech Review", "Vlog", "Shorts"];
-    const RANDOM_SEEDS = ["latest hindi songs", "trending india video", "new bollywood movie", "indian comedy", "tech reviews hindi", "indian vlogs", "cricket india"];
-    const SHORTS_SEEDS = ["#shorts viral india", "#shorts hindi comedy", "#shorts trending song", "#shorts dance india"];
+    const POPULAR_TERMS = ["New Song", "Latest Movie", "Comedy", "News Live", "Cricket Highlights", "Bhojpuri Video", "Hindi Dubbed", "Tech Review Hindi", "Vlog India"];
+    
+    // Default Seeds if User has no History
+    const DEFAULT_SEEDS = ["latest hindi songs", "trending india new", "new bollywood movie", "indian comedy video", "tech reviews hindi new", "indian vlogs new", "cricket india highlights"];
+    
+    // Shorts Seeds (Only for Shorts Tab)
+    const SHORTS_SEEDS = ["#shorts viral india", "#shorts hindi comedy", "#shorts trending song", "#shorts dance india", "#shorts facts hindi"];
 
     function getVid(v) { return typeof v.id === "string" ? v.id : (v.id?.videoId || ""); }
+    function fmt(n) { if (!n) return ""; const x = parseInt(n); if (x >= 1e9) return (x/1e9).toFixed(1)+"B"; if (x >= 1e6) return (x/1e6).toFixed(1)+"M"; if (x >= 1e3) return (x/1e3).toFixed(1)+"K"; return String(x); }
+    function ago(d) { if (!d) return ""; const days = Math.floor((Date.now() - new Date(d)) / 86400000); if (!days) return "New"; if (days < 7) return days + "d ago"; if (days < 30) return Math.floor(days/7) + "w ago"; return Math.floor(days/30) + "mo ago"; }
     function App() {
       const [currentTab, setCurrentTab] = useState("home");
       const [videos, setVideos] = useState([]);
@@ -115,10 +115,16 @@
       const [searchOpen, setSearchOpen] = useState(false);
       const [suggestions, setSuggestions] = useState([]);
       
-      // Saved Library State (Local Storage)
+      // Saved Library State
       const [savedVids, setSavedVids] = useState(() => {
         const saved = localStorage.getItem("yt_saved_vids");
         return saved ? JSON.parse(saved) : [];
+      });
+
+      // 🔥 USER INTEREST HISTORY (To personalize feed)
+      const [searchHistory, setSearchHistory] = useState(() => {
+        const history = localStorage.getItem("yt_search_history");
+        return history ? JSON.parse(history) : [];
       });
 
       // Shorts State
@@ -126,7 +132,6 @@
       const [shortIndex, setShortIndex] = useState(0);
       const [loadingShorts, setLoadingShorts] = useState(false);
 
-      // --- Logic ---
       function handleInputChange(val) {
         setQuery(val);
         if(val.trim().length > 0) {
@@ -138,7 +143,11 @@
         setQuery(searchWord); setSuggestions([]); setSearchOpen(false);
         setActiveCat(""); setCurrentTab("home"); setSelected(null);
         
-        // Fix: Auto-scroll to top after search
+        // Save Search to User's Personal History for Future Recommendations
+        const updatedHistory = [searchWord, ...searchHistory.filter(w => w !== searchWord)].slice(0, 10);
+        setSearchHistory(updatedHistory);
+        localStorage.setItem("yt_search_history", JSON.stringify(updatedHistory));
+
         setTimeout(() => {
           window.scrollTo({ top: 0, behavior: 'smooth' });
           document.documentElement.scrollTop = 0;
@@ -147,23 +156,38 @@
         fetchVideos(null, false, searchWord);
       }
 
+      // 🔥 MAIN SMART FETCH LOGIC (Filters out shorts, adds Hindi/Latest, uses History)
       async function fetchVideos(cat, isAppend = false, customQuery = null) {
         if (isAppend) setAppending(true);
         else { setLoading(true); setVideos([]); }
+        
         try {
-          let url = ""; let finalQuery = customQuery !== null ? customQuery : query;
-          let randomSeed = RANDOM_SEEDS[Math.floor(Math.random() * RANDOM_SEEDS.length)];
+          let url = ""; 
+          let finalQuery = customQuery !== null ? customQuery : query;
+          
+          // Personalization: Use Search History if available, else Default
+          let userSeeds = searchHistory.length > 0 ? searchHistory : DEFAULT_SEEDS;
+          let randomSeed = userSeeds[Math.floor(Math.random() * userSeeds.length)];
 
           if (finalQuery) {
             let backendQuery = finalQuery;
-            if (!backendQuery.toLowerCase().includes("india") && !backendQuery.toLowerCase().includes("hindi") && !backendQuery.toLowerCase().includes("channel")) backendQuery += " India";
+            // Force Hindi and Exclude Shorts
+            if (!backendQuery.toLowerCase().includes("hindi")) backendQuery += " Hindi";
+            backendQuery += " -shorts"; // <--- NO SHORTS FILTER
             url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(backendQuery)}&maxResults=24`;
           } else if (cat && cat !== "all") {
             if (isAppend) {
                let catLabel = CATS.find(c => c.id === cat).label;
-               url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(catLabel + " India")}&maxResults=24`;
-            } else url = `${BACKEND_URL}/api/trending?categoryId=${cat}&maxResults=24`;
-          } else url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(randomSeed)}&maxResults=24`;
+               url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(catLabel + " Hindi latest -shorts")}&maxResults=24`;
+            } else {
+               // Trending API doesn't support -shorts query well, so we switch to Search API for categories to ensure strict filtering
+               let catLabel = CATS.find(c => c.id === cat).label;
+               url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(catLabel + " Hindi latest -shorts")}&maxResults=24`;
+            }
+          } else {
+             // Home Feed -> Personalized + Latest + Hindi + NO SHORTS
+             url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(randomSeed + " Hindi latest -shorts")}&maxResults=24`;
+          }
           
           const res = await fetch(url); const data = await res.json();
           if (!data.error && data.items) {
@@ -187,25 +211,20 @@
         return () => window.removeEventListener('scroll', handleScroll);
       }, [loading, appending, activeCat, query, videos.length, currentTab]);
 
-      // ✅ FIX: 100% Perfect Video Click & Auto-Scroll
       function handleVideoClick(v) {
         setSelected(v);
-        // Thoda delay diya taaki player screen par aa jaye, fir scroll kare
         setTimeout(() => {
           window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
-          // Fallback for older mobile browsers
           document.body.scrollTop = 0; 
           document.documentElement.scrollTop = 0;
         }, 100);
       }
 
-      // Channel Click Logic
       function handleChannelClick(channelName) {
         setSelected(null);
         executeSearch(channelName + " channel videos");
       }
 
-      // Save/Like Logic
       function toggleSave(v) {
         let updatedList;
         const alreadySaved = savedVids.some(vid => getVid(vid) === getVid(v));
@@ -229,20 +248,16 @@
         }
       }
 
-      // Bottom Nav Click Logic
       function handleNavClick(tabName) {
         if (tabName === "home" && currentTab === "home") {
-          setSelected(null);
-          setQuery("");
-          setActiveCat("all");
+          setSelected(null); setQuery(""); setActiveCat("all");
           setTimeout(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, 100);
-          fetchVideos("all");
+          fetchVideos("all"); // This will now fetch new random things based on history
         } else {
           setCurrentTab(tabName);
         }
       }
 
-      // Shorts Logic
       async function fetchShortsData(isAppend = false) {
         if (!isAppend) { setLoadingShorts(true); setShortsVids([]); setShortIndex(0); }
         try {
@@ -271,17 +286,20 @@
         }
       }
 
-      // Reusable Grid Component
       const renderGrid = (videoList) => (
         <div className="grid">
           {videoList.map((v, index) => {
             const s = v.snippet || {};
+            const st = v.statistics || {};
             return (
               <div key={getVid(v) + index} className="card" onClick={() => handleVideoClick(v)}>
                 <div className="thumb-wrap"><img src={s.thumbnails?.medium?.url || ""} loading="lazy" /></div>
                 <div className="card-info">
                   <div className="vid-title">{s.title}</div>
                   <div className="vid-channel">👤 {s.channelTitle}</div>
+                  <div className="vid-stats">
+                    {st.viewCount ? fmt(st.viewCount) + " views • " : ""} {ago(s.publishedAt)}
+                  </div>
                 </div>
               </div>
             );
@@ -291,7 +309,6 @@
 
       return (
         <div>
-          {/* Header */}
           {currentTab !== "shorts" && (
             <div className="glass-header">
               <div className="brand-btn" onClick={() => handleNavClick("home")}>
@@ -324,10 +341,8 @@
 
           <div className="main-content">
             
-            {/* 🏠 TAB 1: HOME */}
             {currentTab === "home" && (
               <div>
-                {/* Playing Video */}
                 {selected && (
                   <div style={{maxWidth:900, margin:"0 auto", padding:"12px"}}>
                     <div style={{position:"relative", paddingBottom:"56.25%", borderRadius:"12px", overflow:"hidden", background:"#000", boxShadow:"0 2px 10px rgba(0,0,0,0.1)"}}>
@@ -336,7 +351,11 @@
                         allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen />
                     </div>
                     
-                    <h2 style={{fontSize:"15px", fontWeight:700, margin:"12px 0 6px", color:"#111", lineHeight:"1.4"}}>{selected.snippet?.title}</h2>
+                    <h2 style={{fontSize:"15px", fontWeight:700, margin:"12px 0 4px", color:"#111", lineHeight:"1.4"}}>{selected.snippet?.title}</h2>
+                    
+                    <div style={{fontSize:"12px", color:"#666", marginBottom:"10px", fontWeight:"500"}}>
+                      {selected.statistics?.viewCount ? fmt(selected.statistics.viewCount) + " views • " : ""} {ago(selected.snippet?.publishedAt)}
+                    </div>
                     
                     <div className="action-row">
                       <button className="action-btn" onClick={() => handleChannelClick(selected.snippet?.channelTitle)}>
@@ -356,7 +375,6 @@
                   </div>
                 )}
 
-                {/* Categories */}
                 {!selected && (
                   <div className="cat-container">
                     {CATS.map(cat => (
@@ -375,27 +393,13 @@
                 {loading ? (
                   <div style={{textAlign:"center", padding:"40px", color:"#888"}}>Loading... ⏳</div>
                 ) : (
-                  <div className="grid">
-                    {videos.filter(v => getVid(v) !== (selected ? getVid(selected) : "")).map((v, index) => {
-                      const s = v.snippet || {};
-                      return (
-                        <div key={getVid(v) + index} className="card" onClick={() => handleVideoClick(v)}>
-                          <div className="thumb-wrap"><img src={s.thumbnails?.medium?.url || ""} loading="lazy" /></div>
-                          <div className="card-info">
-                            <div className="vid-title">{s.title}</div>
-                            <div className="vid-channel">👤 {s.channelTitle}</div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                  renderGrid(videos.filter(v => getVid(v) !== (selected ? getVid(selected) : "")))
                 )}
                 
                 {appending && <div style={{textAlign:"center", padding:"16px", color:"#888", fontSize:"12px"}}>Loading more... ⏳</div>}
               </div>
             )}
 
-            {/* 📱 TAB 2: SHORTS */}
             {currentTab === "shorts" && (
               <div className="shorts-container" onScroll={handleShortsScroll}>
                 {shortsVids.map((v, i) => {
@@ -420,7 +424,6 @@
               </div>
             )}
 
-            {/* 👤 TAB 3: LIBRARY (Saved Videos) */}
             {currentTab === "profile" && (
               <div style={{padding:"16px"}}>
                 <div style={{display:"flex", alignItems:"center", gap:"10px", marginBottom:"16px"}}>
@@ -448,7 +451,6 @@
             
           </div>
 
-          {/* Bottom Nav */}
           <div className="bottom-nav">
             <div className={`nav-item ${currentTab === "home" ? "active" : ""}`} onClick={() => handleNavClick("home")}>
               <div className="nav-icon">{currentTab === "home" ? "🏠" : "🏡"}</div>
