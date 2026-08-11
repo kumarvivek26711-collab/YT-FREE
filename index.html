@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Tech Jugad 📺</title>
   <meta name="description" content="Clean YouTube without ads" />
-  <!-- Logo File Name Updated Here -->
   <link rel="icon" href="Tech_Jugad_150x150.png" />
   <link rel="manifest" href="manifest.json" />
   
@@ -41,40 +40,17 @@
     body, html { background: var(--bg-main); color: var(--text-main); -webkit-tap-highlight-color: transparent; width: 100%; height: 100%; overflow-x: hidden; scroll-behavior: smooth; transition: background 0.3s, color 0.3s; }
     ::-webkit-scrollbar { width: 0px; display: none; } 
 
-    /* 🔥 VIP SPLASH SCREEN 🔥 */
-    .splash-screen { 
-      position: fixed; inset: 0; 
-      background: radial-gradient(circle at center, #0a1930 0%, #000000 100%); 
-      z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; 
-      animation: fadeOut 0.5s ease 2s forwards; pointer-events: none; 
-    }
+    /* Splash Screen */
+    .splash-screen { position: fixed; inset: 0; background: radial-gradient(circle at center, #0a1930 0%, #000000 100%); z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; animation: fadeOut 0.5s ease 2s forwards; pointer-events: none; }
     @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
-    
-    .splash-logo { 
-      width: 140px; height: 140px; border-radius: 50%; margin-bottom: 20px;
-      animation: pulseGlow 1.5s infinite alternate;
-      box-shadow: 0 0 20px rgba(0, 168, 255, 0.5), 0 0 40px rgba(255, 102, 0, 0.3);
-      object-fit: cover;
-    }
-    @keyframes pulseGlow { 
-      from { transform: scale(0.95); box-shadow: 0 0 15px rgba(0, 168, 255, 0.4), 0 0 20px rgba(255, 102, 0, 0.2); } 
-      to { transform: scale(1.05); box-shadow: 0 0 40px rgba(0, 168, 255, 0.8), 0 0 60px rgba(255, 102, 0, 0.6); } 
-    }
-    
-    .splash-text { 
-      font-size: 28px; font-weight: 800; color: #fff; letter-spacing: 2px;
-      text-shadow: 0 0 10px rgba(0, 168, 255, 0.8), 0 0 20px rgba(0, 168, 255, 0.5);
-    }
+    .splash-logo { width: 140px; height: 140px; border-radius: 50%; margin-bottom: 20px; animation: pulseGlow 1.5s infinite alternate; box-shadow: 0 0 20px rgba(0, 168, 255, 0.5), 0 0 40px rgba(255, 102, 0, 0.3); object-fit: cover; }
+    @keyframes pulseGlow { from { transform: scale(0.95); box-shadow: 0 0 15px rgba(0, 168, 255, 0.4), 0 0 20px rgba(255, 102, 0, 0.2); } to { transform: scale(1.05); box-shadow: 0 0 40px rgba(0, 168, 255, 0.8), 0 0 60px rgba(255, 102, 0, 0.6); } }
+    .splash-text { font-size: 28px; font-weight: 800; color: #fff; letter-spacing: 2px; text-shadow: 0 0 10px rgba(0, 168, 255, 0.8), 0 0 20px rgba(0, 168, 255, 0.5); }
 
     /* Header */
     .glass-header { background: var(--bg-header); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; transition: 0.3s; }
     .brand-btn { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-    
-    .logo-box { 
-      width: 36px; height: 36px; border-radius: 50%; background: transparent; 
-      display: flex; align-items: center; justify-content: center; flex-shrink: 0; 
-      overflow: hidden; box-shadow: 0 0 8px rgba(0, 168, 255, 0.6);
-    }
+    .logo-box { width: 36px; height: 36px; border-radius: 50%; background: transparent; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; box-shadow: 0 0 8px rgba(0, 168, 255, 0.6); }
     .logo-box img { width: 100%; height: 100%; object-fit: cover; }
     .brand-text { font-weight: 700; font-size: 16px; color: var(--text-main); }
 
@@ -84,10 +60,8 @@
     .search-box.open { width: 100%; max-width: 250px; background: var(--bg-card); border: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
     .search-input { flex: 1; border: none; background: transparent; color: var(--text-main); padding: 0 0 0 12px; font-size: 13px; outline: none; font-weight: 500; width: 0; opacity: 0; transition: 0.3s; }
     .search-box.open .search-input { width: 100%; opacity: 1; }
-    
     .icon-btn { width: 38px; height: 38px; background: transparent; border: none; color: var(--text-main); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 50%; }
     .icon-btn:hover { background: var(--bg-hover); }
-    
     .suggest-box { position: absolute; top: 46px; right: 0; width: 100%; max-width: 300px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); z-index: 200; overflow: hidden; }
     .suggest-item { padding: 10px 14px; cursor: pointer; color: var(--text-main); font-size: 13px; border-bottom: 1px solid var(--bg-hover); display: flex; align-items: center; gap: 8px; font-weight: 500; }
 
@@ -97,20 +71,21 @@
     .cat-btn { background: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border); border-radius: 16px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: 0.2s; display: flex; gap: 4px; align-items: center; }
     .cat-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-    .main-content { padding-bottom: 70px; }
+    .main-content { padding-bottom: 70px; min-height: 100vh; }
 
     /* Grid & Cards */
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; padding: 12px; max-width: 1200px; margin: 0 auto; }
     .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; cursor: pointer; transition: 0.2s; }
+    
+    /* Thumbnail & Duration Badge */
     .thumb-wrap { position: relative; padding-bottom: 56.25%; background: var(--bg-hover); overflow: hidden; }
     .thumb-wrap img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .vid-duration { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.8); color: #fff; font-size: 10px; font-weight: 600; padding: 3px 6px; border-radius: 6px; letter-spacing: 0.5px; backdrop-filter: blur(4px); }
+    
     .card-info { padding: 10px; }
     .vid-title { color: var(--text-main); font-size: 13px; font-weight: 600; line-height: 1.35; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .vid-channel { color: var(--text-muted); font-size: 11px; font-weight: 500; display: flex; align-items: center; gap: 4px; }
     .vid-stats { color: var(--text-muted); font-size: 11px; font-weight: 500; margin-top: 3px; }
-
-    /* Ad Banners */
-    .ad-banner { background: var(--bg-card); border: 1px dashed var(--text-muted); padding: 20px; text-align: center; color: var(--text-muted); font-size: 12px; font-weight: 600; margin: 10px 12px; border-radius: 8px; min-height: 80px; display: flex; align-items: center; justify-content: center; }
 
     /* Action Buttons */
     .action-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
@@ -124,12 +99,15 @@
     .nav-icon { font-size: 20px; transition: transform 0.2s; }
     .nav-item.active .nav-icon { transform: scale(1.15); color: var(--accent); }
 
-    /* Shorts Clean UI */
-    .shorts-container { height: calc(100vh - 56px); overflow-y: scroll; scroll-snap-type: y mandatory; scroll-behavior: smooth; background: #000; }
-    .short-item { height: 100%; width: 100%; scroll-snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; }
+    /* Shorts UI & Scroll Fix */
+    .shorts-container { height: calc(100dvh - 56px); overflow-y: scroll; scroll-snap-type: y mandatory; scroll-behavior: smooth; background: #000; position: relative; }
+    .short-item { height: calc(100dvh - 56px); width: 100%; scroll-snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; }
     .short-info { position: absolute; bottom: 15px; left: 12px; right: 12px; z-index: 10; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,0.8); pointer-events: none; }
     .short-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .short-channel { font-size: 12px; font-weight: 500; display: inline-block; background: rgba(0,0,0,0.4); padding: 4px 8px; border-radius: 12px; backdrop-filter: blur(4px); }
+    .swipe-zone { position: absolute; left: 0; width: 100%; z-index: 5; }
+    .swipe-zone.top { top: 0; height: 25%; }
+    .swipe-zone.bottom { bottom: 0; height: 25%; }
   </style>
 </head>
 <body>
@@ -152,6 +130,7 @@
     const POPULAR_TERMS = ["New Song", "Latest Movie", "Comedy", "News Live", "Cricket Highlights", "Bhojpuri Video", "Hindi Dubbed", "Tech Review Hindi", "Vlog India"];
     const DEFAULT_SEEDS = ["latest hindi songs", "trending india new", "new bollywood movie", "indian comedy video", "tech reviews hindi new", "indian vlogs new", "cricket india highlights"];
     const SHORTS_SEEDS = ["#shorts viral india", "#shorts hindi comedy", "#shorts trending song", "#shorts dance india", "#shorts facts hindi"];
+    const SCROLL_TRICKS = ["2024", "HD", "viral", "top", "latest", "update", "new"];
 
     function getVid(v) { return typeof v.id === "string" ? v.id : (v.id?.videoId || ""); }
     function fmt(n) { if (!n) return ""; const x = parseInt(n); if (x >= 1e9) return (x/1e9).toFixed(1)+"B"; if (x >= 1e6) return (x/1e6).toFixed(1)+"M"; if (x >= 1e3) return (x/1e3).toFixed(1)+"K"; return String(x); }
@@ -163,7 +142,6 @@
       useEffect(() => {
         document.documentElement.setAttribute("data-theme", theme);
         localStorage.setItem("yt_theme", theme);
-        
         const splashTimer = setTimeout(() => setShowSplash(false), 2000);
         return () => clearTimeout(splashTimer);
       }, [theme]);
@@ -216,27 +194,32 @@
         else { setLoading(true); setVideos([]); }
         
         try {
-          let url = ""; let finalQuery = customQuery !== null ? customQuery : query;
+          let url = ""; 
+          let finalQuery = customQuery !== null ? customQuery : query;
           let userSeeds = searchHistory.length > 0 ? searchHistory : DEFAULT_SEEDS;
           let randomSeed = userSeeds[Math.floor(Math.random() * userSeeds.length)];
+          let scrollTrick = isAppend ? " " + SCROLL_TRICKS[Math.floor(Math.random() * SCROLL_TRICKS.length)] : "";
 
           if (finalQuery) {
-            let backendQuery = finalQuery;
+            let backendQuery = finalQuery + scrollTrick;
             if (!backendQuery.toLowerCase().includes("hindi")) backendQuery += " Hindi";
             backendQuery += " -shorts";
             url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(backendQuery)}&maxResults=24`;
           } else if (cat && cat !== "all") {
             let catLabel = CATS.find(c => c.id === cat).label;
-            url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(catLabel + " Hindi latest -shorts")}&maxResults=24`;
+            url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(catLabel + " Hindi latest -shorts" + scrollTrick)}&maxResults=24`;
           } else {
-             url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(randomSeed + " Hindi latest -shorts")}&maxResults=24`;
+             url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(randomSeed + " Hindi latest -shorts" + scrollTrick)}&maxResults=24`;
           }
           
           const res = await fetch(url); const data = await res.json();
           if (!data.error && data.items) {
             const newVids = data.items.filter(v => getVid(v)); 
-            if (isAppend) setVideos(prev => [...prev, ...newVids.filter(nv => !prev.some(pv => getVid(pv) === getVid(nv)))]);
-            else setVideos(newVids.sort(() => Math.random() - 0.5));
+            if (isAppend) {
+                setVideos(prev => [...prev, ...newVids.filter(nv => !prev.some(pv => getVid(pv) === getVid(nv)))]);
+            } else {
+                setVideos(newVids.sort(() => Math.random() - 0.5));
+            }
           }
         } catch (e) { console.error(e); }
         setLoading(false); setAppending(false);
@@ -246,7 +229,11 @@
 
       useEffect(() => {
         const handleScroll = () => {
-          if (currentTab === "home" && (window.innerHeight + window.scrollY) >= document.body.offsetHeight - 800 && !loading && !appending && videos.length > 0) {
+          const scrollTop = window.scrollY || document.documentElement.scrollTop;
+          const scrollHeight = document.documentElement.scrollHeight;
+          const clientHeight = document.documentElement.clientHeight;
+          
+          if (currentTab === "home" && (scrollTop + clientHeight) >= scrollHeight - 800 && !loading && !appending && videos.length > 0) {
             fetchVideos(activeCat, true);
           }
         };
@@ -256,7 +243,6 @@
 
       function handleVideoClick(v) {
         setSelected(v);
-        
         const updatedHistory = [v, ...historyVids.filter(vid => getVid(vid) !== getVid(v))].slice(0, 40);
         setHistoryVids(updatedHistory);
         localStorage.setItem("yt_watch_history", JSON.stringify(updatedHistory));
@@ -284,8 +270,7 @@
           try { await navigator.share({ title: v.snippet.title, text: 'Check out this video on Tech Jugad!', url: url }); }
           catch (e) { console.log("Share cancelled"); }
         } else {
-          navigator.clipboard.writeText(url);
-          alert("Link copied to clipboard! 📋");
+          navigator.clipboard.writeText(url); alert("Link copied to clipboard! 📋");
         }
       }
 
@@ -303,7 +288,7 @@
       function handleNavClick(tabName) {
         if (tabName === "home" && currentTab === "home") {
           setSelected(null); setQuery(""); setActiveCat("all");
-          setTimeout(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, 100);
+          setTimeout(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); document.documentElement.scrollTop = 0; }, 100);
           fetchVideos("all"); 
         } else {
           setCurrentTab(tabName);
@@ -342,7 +327,10 @@
             const s = v.snippet || {}; const st = v.statistics || {};
             return (
               <div key={getVid(v) + index} className="card" onClick={() => handleVideoClick(v)}>
-                <div className="thumb-wrap"><img src={s.thumbnails?.medium?.url || ""} loading="lazy" /></div>
+                <div className="thumb-wrap">
+                  <img src={s.thumbnails?.medium?.url || ""} loading="lazy" />
+                  <div className="vid-duration">▶ HD</div>
+                </div>
                 <div className="card-info">
                   <div className="vid-title">{s.title}</div>
                   <div className="vid-channel">👤 {s.channelTitle}</div>
@@ -353,10 +341,9 @@
           })}
         </div>
       );
-
       return (
         <div>
-          {/* 🔥 SPLASH SCREEN (WITH NEW LOGO NAME) */}
+          {/* Splash Screen */}
           {showSplash && (
             <div className="splash-screen">
               <img src="Tech_Jugad_150x150.png" className="splash-logo" alt="Tech Jugad Logo" />
@@ -364,10 +351,10 @@
             </div>
           )}
 
+          {/* Header */}
           {currentTab !== "shorts" && (
             <div className="glass-header">
               <div className="brand-btn" onClick={() => handleNavClick("home")}>
-                {/* 🔥 HEADER LOGO UPDATE */}
                 <div className="logo-box">
                   <img src="Tech_Jugad_150x150.png" alt="Logo" />
                 </div>
@@ -404,7 +391,7 @@
           )}
 
           <div className="main-content">
-            
+            {/* HOME TAB */}
             {currentTab === "home" && (
               <div>
                 {selected && (
@@ -425,18 +412,11 @@
                       <button className="action-btn" onClick={() => handleChannelClick(selected.snippet?.channelTitle)}>
                         👤 {selected.snippet?.channelTitle}
                       </button>
-                      
                       <button className={`action-btn ${savedVids.some(vid => getVid(vid) === getVid(selected)) ? 'active' : ''}`} onClick={() => toggleSave(selected)}>
                         {savedVids.some(vid => getVid(vid) === getVid(selected)) ? "❤️ Saved" : "🤍 Save"}
                       </button>
-                      
-                      <button className="action-btn" onClick={() => handleShare(selected)}>
-                        📤 Share
-                      </button>
-
-                      <button className="action-btn" onClick={goFullscreen}>
-                        🔄 Rotate
-                      </button>
+                      <button className="action-btn" onClick={() => handleShare(selected)}>📤 Share</button>
+                      <button className="action-btn" onClick={goFullscreen}>🔄 Rotate</button>
                     </div>
                     
                     <div className="ad-banner">💰 Your Ad Space (Responsive)</div>
@@ -468,6 +448,7 @@
               </div>
             )}
 
+            {/* SHORTS TAB */}
             {currentTab === "shorts" && (
               <div className="shorts-container" onScroll={handleShortsScroll}>
                 {shortsVids.map((v, i) => {
@@ -475,9 +456,13 @@
                   return (
                     <div key={vidId + i} className="short-item">
                       {shortIndex === i ? (
-                        <iframe src={`https://www.youtube-nocookie.com/embed/${vidId}?autoplay=1&loop=1&playlist=${vidId}&controls=0&modestbranding=1&rel=0&iv_load_policy=3&disablekb=1`}
-                          style={{position:"absolute", inset:0, width:"100%", height:"100%", border:"none", pointerEvents:"auto"}}
-                          allow="autoplay; encrypted-media; fullscreen" allowFullScreen />
+                        <>
+                          <div className="swipe-zone top"></div>
+                          <iframe src={`https://www.youtube-nocookie.com/embed/${vidId}?autoplay=1&loop=1&playlist=${vidId}&controls=0&modestbranding=1&rel=0&iv_load_policy=3&disablekb=1`}
+                            style={{position:"absolute", inset:0, width:"100%", height:"100%", border:"none", pointerEvents:"auto"}}
+                            allow="autoplay; encrypted-media; fullscreen" allowFullScreen />
+                          <div className="swipe-zone bottom"></div>
+                        </>
                       ) : (
                         <img src={s.thumbnails?.high?.url || s.thumbnails?.medium?.url} style={{position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity: 0.3}} />
                       )}
@@ -492,6 +477,7 @@
               </div>
             )}
 
+            {/* PROFILE / LIBRARY TAB */}
             {currentTab === "profile" && (
               <div style={{padding:"16px"}}>
                 <div style={{display:"flex", alignItems:"center", gap:"10px", marginBottom:"16px"}}>
@@ -527,6 +513,7 @@
             
           </div>
 
+          {/* Bottom Nav */}
           <div className="bottom-nav">
             <div className={`nav-item ${currentTab === "home" ? "active" : ""}`} onClick={() => handleNavClick("home")}>
               <div className="nav-icon">{currentTab === "home" ? "🏠" : "🏡"}</div>
