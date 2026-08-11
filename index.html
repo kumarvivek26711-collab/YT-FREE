@@ -136,8 +136,14 @@
 
       function executeSearch(searchWord) {
         setQuery(searchWord); setSuggestions([]); setSearchOpen(false);
-        setActiveCat(""); setCurrentTab("home"); 
-        window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top
+        setActiveCat(""); setCurrentTab("home"); setSelected(null);
+        
+        // Fix: Auto-scroll to top after search
+        setTimeout(() => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          document.documentElement.scrollTop = 0;
+        }, 100);
+        
         fetchVideos(null, false, searchWord);
       }
 
@@ -181,10 +187,16 @@
         return () => window.removeEventListener('scroll', handleScroll);
       }, [loading, appending, activeCat, query, videos.length, currentTab]);
 
-      // Video Click & Scroll to top
+      // ✅ FIX: 100% Perfect Video Click & Auto-Scroll
       function handleVideoClick(v) {
         setSelected(v);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Thoda delay diya taaki player screen par aa jaye, fir scroll kare
+        setTimeout(() => {
+          window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+          // Fallback for older mobile browsers
+          document.body.scrollTop = 0; 
+          document.documentElement.scrollTop = 0;
+        }, 100);
       }
 
       // Channel Click Logic
@@ -220,11 +232,10 @@
       // Bottom Nav Click Logic
       function handleNavClick(tabName) {
         if (tabName === "home" && currentTab === "home") {
-          // If already on home, refresh feed and scroll to top
           setSelected(null);
           setQuery("");
           setActiveCat("all");
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+          setTimeout(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, 100);
           fetchVideos("all");
         } else {
           setCurrentTab(tabName);
@@ -328,17 +339,14 @@
                     <h2 style={{fontSize:"15px", fontWeight:700, margin:"12px 0 6px", color:"#111", lineHeight:"1.4"}}>{selected.snippet?.title}</h2>
                     
                     <div className="action-row">
-                      {/* Clickable Channel Name */}
                       <button className="action-btn" onClick={() => handleChannelClick(selected.snippet?.channelTitle)}>
                         👤 {selected.snippet?.channelTitle}
                       </button>
                       
-                      {/* Save / Like Button */}
                       <button className={`action-btn ${savedVids.some(vid => getVid(vid) === getVid(selected)) ? 'active' : ''}`} onClick={() => toggleSave(selected)}>
                         {savedVids.some(vid => getVid(vid) === getVid(selected)) ? "❤️ Saved" : "🤍 Save"}
                       </button>
                       
-                      {/* Fullscreen Button */}
                       <button className="action-btn" onClick={goFullscreen}>
                         🔄 Rotate
                       </button>
@@ -367,8 +375,22 @@
                 {loading ? (
                   <div style={{textAlign:"center", padding:"40px", color:"#888"}}>Loading... ⏳</div>
                 ) : (
-                  renderGrid(videos.filter(v => getVid(v) !== (selected ? getVid(selected) : "")))
+                  <div className="grid">
+                    {videos.filter(v => getVid(v) !== (selected ? getVid(selected) : "")).map((v, index) => {
+                      const s = v.snippet || {};
+                      return (
+                        <div key={getVid(v) + index} className="card" onClick={() => handleVideoClick(v)}>
+                          <div className="thumb-wrap"><img src={s.thumbnails?.medium?.url || ""} loading="lazy" /></div>
+                          <div className="card-info">
+                            <div className="vid-title">{s.title}</div>
+                            <div className="vid-channel">👤 {s.channelTitle}</div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 )}
+                
                 {appending && <div style={{textAlign:"center", padding:"16px", color:"#888", fontSize:"12px"}}>Loading more... ⏳</div>}
               </div>
             )}
@@ -381,7 +403,6 @@
                   return (
                     <div key={vidId + i} className="short-item">
                       {shortIndex === i ? (
-                        // Shorts with NO CONTROLS (controls=0). Tap screen to pause/play naturally.
                         <iframe src={`https://www.youtube-nocookie.com/embed/${vidId}?autoplay=1&loop=1&playlist=${vidId}&controls=0&modestbranding=1&rel=0&iv_load_policy=3&disablekb=1`}
                           style={{position:"absolute", inset:0, width:"100%", height:"100%", border:"none", pointerEvents:"auto"}}
                           allow="autoplay; encrypted-media; fullscreen" allowFullScreen />
