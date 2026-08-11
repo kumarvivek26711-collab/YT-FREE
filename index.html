@@ -48,7 +48,7 @@
     .action-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
     .action-btn { background: var(--bg-hover); border: 1px solid var(--border); padding: 6px 14px; border-radius: 20px; font-size: 12px; color: var(--text-main); font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
     .action-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-    .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 56px; background: var(--bg-header); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); }
+    .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 56px; background: var(--bg-header); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: 1px solid var(--border); display: flex; justify(around: space-around; align-items: center; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); }
     .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); font-size: 10px; font-weight: 600; cursor: pointer; width: 33%; height: 100%; gap: 2px; transition: 0.2s; }
     .nav-item.active { color: var(--accent); }
     .nav-icon { font-size: 20px; transition: transform 0.2s; }
@@ -68,9 +68,9 @@
     const { useState, useEffect, useRef } = React;
     const BACKEND_URL = "https://yt-free.onrender.com";
     const CATS = [{ id: "all", label: "For You" }, { id: "10", label: "Music" }, { id: "20", label: "Gaming" }, { id: "28", label: "Tech" }];
-    const POPULAR_TERMS = ["New Song", "Latest Movie", "Comedy Hindi", "News Hindi", "Vlog India"];
-    const SHORTS_SEEDS = ["#shorts viral india", "#shorts hindi comedy", "#shorts trending song"];
-    const SCROLL_TRICKS = ["2024", "HD", "viral"];
+    const POPULAR_TERMS = ["New Song Hindi", "Latest Bollywood Movie", "Hindi Dubbed Action", "Cricket Highlights India", "Bhojpuri Video", "New Vlogs Hindi"];
+    const SHORTS_SEEDS = ["#shorts viral india", "#shorts hindi comedy", "#shorts trending song", "#shorts indian vlogs"];
+    const SCROLL_TRICKS = ["2024", "HD", "viral", "latest", "update"];
 
     function getVid(v) { return typeof v.id === "string" ? v.id : (v.id?.videoId || ""); }
     function fmt(n) { if (!n) return ""; const x = parseInt(n); if (x >= 1e9) return (x/1e9).toFixed(1)+"B"; if (x >= 1e6) return (x/1e6).toFixed(1)+"M"; if (x >= 1e3) return (x/1e3).toFixed(1)+"K"; return String(x); }
@@ -83,40 +83,57 @@
       const [currentTab, setCurrentTab] = useState("home");
       const [videos, setVideos] = useState([]);
       const [shortsVids, setShortsVids] = useState([]);
+      const [savedVids, setSavedVids] = useState(() => JSON.parse(localStorage.getItem("yt_saved_vids") || "[]"));
       const [historyVids, setHistoryVids] = useState(() => JSON.parse(localStorage.getItem("yt_watch_history") || "[]"));
-      const [searchOpen, setSearchOpen] = useState(false);
-      const [suggestions, setSuggestions] = useState([]);
-      const [query, setQuery] = useState("");
-      const [activeCat, setActiveCat] = useState("all");
+      const [searchHistory, setSearchHistory] = useState(() => JSON.parse(localStorage.getItem("yt_search_history") || "[]"));
+
       const [selected, setSelected] = useState(null);
       const [loading, setLoading] = useState(false);
       const [error, setError] = useState(false);
       const [appending, setAppending] = useState(false);
+      const [query, setQuery] = useState("");
+      const [activeCat, setActiveCat] = useState("all");
+      const [searchOpen, setSearchOpen] = useState(false);
+      const [suggestions, setSuggestions] = useState([]);
       const [shortIndex, setShortIndex] = useState(0);
+      const [loadingShorts, setLoadingShorts] = useState(false);
 
-      const [savedVids, setSavedVids] = useState(() => JSON.parse(localStorage.getItem("yt_saved_vids") || "[]"));
-      const [searchHistory, setSearchHistory] = useState(() => JSON.parse(localStorage.getItem("yt_search_history") || "[]"));
-
+      // 🔥 VIP DATA FETCH LOGIC WITH FALLBACK 🔥
       async function fetchVideos(cat, isAppend = false, customQuery = null) {
         if (isAppend) setAppending(true); else { setLoading(true); setVideos([]); setError(false); setSelected(null); }
         try {
           const defaultSeed = POPULAR_TERMS[Math.floor(Math.random() * POPULAR_TERMS.length)];
-          const trick = isAppend ? " " + SCROLL_TRICKS[Math.floor(Math.random() * SCROLL_TRICKS.length)] : "";
           const fQuery = customQuery !== null ? customQuery : query;
           const userSeed = searchHistory.length > 0 ? searchHistory[0] : "";
+          let trick = isAppend ? " " + SCROLL_TRICKS[Math.floor(Math.random() * SCROLL_TRICKS.length)] : "";
           
-          let url = "";
-          if (fQuery) url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(fQuery + trick + " -shorts")}&maxResults=16`;
-          else if (cat && cat !== "all") url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(CATS.find(c=>c.id===cat).label + " Hindi" + trick + " -shorts")}&maxResults=16`;
-          else url = `${BACKEND_URL}/api/search?q=${encodeURIComponent((userSeed || defaultSeed) + " Hindi latest" + trick + " -shorts")}&maxResults=16`;
+          let backendQuery = "";
+          if (fQuery) backendQuery = fQuery;
+          else if (cat && cat !== "all") backendQuery = CATS.find(c=>c.id===cat).label + " latest";
+          else backendQuery = (userSeed || defaultSeed);
 
-          const res = await fetch(url); const data = await res.json();
+          if (!backendQuery.toLowerCase().includes("hindi") && !backendQuery.startsWith("#")) backendQuery += " Hindi";
+          backendQuery += trick + " -shorts";
+
+          const res = await fetch(`${BACKEND_URL}/api/search?q=${encodeURIComponent(backendQuery)}&maxResults=20`);
+          const data = await res.json();
           if (!data.error && data.items && data.items.length > 0) {
             const newVids = data.items.filter(v => getVid(v));
-            setVideos(prev => isAppend ? [...prev, ...newVids] : newVids.sort(()=>Math.random()-0.5));
-          } else { if (!isAppend) setError(true); }
+            setVideos(prev => isAppend ? [...prev, ...newVids] : newVids.sort(() => Math.random() - 0.5));
+          } else { 
+            // Query failed or returned empty items
+            if (!isAppend) {
+                // If this is initial load, try fallback seeds before setting error
+                if (!fQuery && cat==="all" && data.error?.code === 403) {
+                  // Fallback to random common terms if main quota fails
+                  executeSearch(POPULAR_TERMS[Math.floor(Math.random()*POPULAR_TERMS.length)]);
+                } else { setError(true); }
+            }
+          }
         } catch (e) { console.error(e); if (!isAppend) setError(true); } finally { setLoading(false); setAppending(false); }
       }
+
+      useEffect(() => { if (videos.length === 0 && !loading && currentTab === "home") fetchVideos("all"); }, [currentTab]);
 
       useEffect(() => {
         const handleScroll = () => {
@@ -140,12 +157,32 @@
         fetchVideos(null, false, searchWord);
       }
 
+      async function fetchShortsData(isAppend = false) {
+        if (!isAppend) { setLoadingShorts(true); setShortsVids([]); setShortIndex(0); }
+        try {
+          const seed = SHORTS_SEEDS[Math.floor(Math.random() * SHORTS_SEEDS.length)];
+          const res = await fetch(`${BACKEND_URL}/api/search?q=${encodeURIComponent(seed)}&maxResults=15`);
+          const data = await res.json();
+          if (!data.error && data.items) {
+             const newVids = data.items.filter(v => getVid(v));
+             setShortsVids(prev => isAppend ? [...prev, ...newVids] : newVids.sort(() => Math.random() - 0.5));
+          }
+        } catch(e) {} finally { setLoadingShorts(false); }
+      }
+
+      useEffect(() => { if (currentTab === "shorts" && shortsVids.length === 0) fetchShortsData(); }, [currentTab]);
+
+      function handleShortsScroll(e) {
+        const idx = Math.round(e.target.scrollTop / e.target.clientHeight);
+        if (idx !== shortIndex) { setShortIndex(idx); if (idx >= shortsVids.length - 3 && !loadingShorts) fetchShortsData(true); }
+      }
+
       const renderGrid = (vidList) => (
         <div className="grid">
           {vidList.map((v, i) => {
-            const s = v.snippet || {}; const st = v.statistics || {}; const vidId = getVid(v);
+            const s = v.snippet || {}; const st = v.statistics || {};
             return (
-              <div key={vidId + i} className="card" onClick={() => handleVideoClick(v)}>
+              <div key={getVid(v) + i} className="card" onClick={() => handleVideoClick(v)}>
                 <div className="thumb-wrap"><img src={s.thumbnails?.medium?.url} loading="lazy" /><div className="vid-duration">▶ HD</div></div>
                 <div className="card-info"><div className="vid-title">{s.title}</div><div className="vid-channel">👤 {s.channelTitle}</div>
                   <div className="vid-stats">{st.viewCount ? fmt(st.viewCount) + " views • " : ""} {ago(s.publishedAt)}</div>
@@ -155,7 +192,6 @@
           })}
         </div>
       );
-
       return (
         <div>
           {currentTab !== "shorts" && (
@@ -182,13 +218,16 @@
                     <div style={{position:"relative", paddingBottom:"56.25%", borderRadius:12, overflow:"hidden", background:"#000", marginTop:10}}><iframe src={`https://www.youtube-nocookie.com/embed/${getVid(selected)}?autoplay=1`} style={{position:"absolute", inset:0, width:"100%", height:"100%", border:0}} allowFullScreen /></div>
                     <h2 style={{fontSize:15, marginTop:12}}>{selected.snippet?.title}</h2>
                     <div className="vid-stats" style={{fontSize:12, color:"var(--text-muted)", fontWeight:"500", marginTop:5}}>{selected.statistics?.viewCount ? fmt(selected.statistics.viewCount) + " views • " : ""} {ago(selected.snippet?.publishedAt)}</div>
-                    <div className="ad-banner">💰 Advertise Here</div>
                   </div>
                 ) : (
                   <div>
                     <div className="cat-container">{CATS.map(cat => <button key={cat.id} className={`cat-btn ${activeCat === cat.id ? 'active' : ''}`} onClick={() => { setActiveCat(cat.id); setQuery(""); fetchVideos(cat.id); }}>{cat.label}</button>)}</div>
-                    <div className="ad-banner">💰 Top Ad Banner Space</div>
-                    {loading ? <div className="blank-screen-fix">Loading Videos... ⏳</div> : error ? <div className="blank-screen-fix">Oops! Data not found. <br/> Try searching or check internet.</div> : renderGrid(videos)}
+                    {loading ? <div className="blank-screen-fix">Searching YouTube Database... ⏳</div> : error ? (
+                        <div className="blank-screen-fix">
+                            Oops! YouTube Quota Limit. <br/> Try searching Hindi terms or wait 10 secs. <br/>
+                            <button className="load-more-btn" onClick={() => executeSearch(POPULAR_TERMS[Math.floor(Math.random()*POPULAR_TERMS.length)])} style={{background:"#444", fontSize:11, padding:"6px 12px"}}>TRY FALLBACK REFRESH 🔄</button>
+                        </div>
+                    ) : renderGrid(videos)}
                     {appending && <div style={{textAlign:"center", color:"var(--text-muted)", padding:10, fontSize:12}}>Loading More...</div>}
                     {videos.length > 0 && !selected && !loading && !appending && <div style={{textAlign:"center", padding:20}}><button className="load-more-btn" onClick={() => fetchVideos(activeCat, true)}>Load More ▼</button></div>}
                   </div>
@@ -196,18 +235,39 @@
               </div>
             )}
             
-            {currentTab === "library" && (
+            {currentTab === "shorts" && (
+              <div className="shorts-container" onScroll={handleShortsScroll}>
+                {shortsVids.map((v, i) => (
+                  <div key={i} className="short-item">
+                    {shortIndex === i ? (
+                      <>
+                        <div className="swipe-zone top"></div><div className="swipe-zone bottom"></div>
+                        <iframe src={`https://www.youtube-nocookie.com/embed/${getVid(v)}?autoplay=1&loop=1&playlist=${getVid(v)}&controls=0&modestbranding=1`} style={{position:"absolute", inset:0, width:"100%", height:"100%", border:0}} allow="autoplay; fullscreen" />
+                      </>
+                    ) : <img src={v.snippet?.thumbnails?.high?.url || v.snippet?.thumbnails?.medium?.url} style={{position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0.3}} />}
+                    <div className="short-info"><div className="short-title">{v.snippet?.title}</div>
+                      <div style={{background:"rgba(0,0,0,0.5)", padding:"4px 8px", borderRadius:10, display:"inline-block", fontSize:12, fontWeight:500}}>👤 {v.snippet?.channelTitle}</div>
+                    </div>
+                  </div>
+                ))}
+                {loadingShorts && <div style={{color:"#fff", textAlign:"center", padding:40}}>Loading... ⏳</div>}
+              </div>
+            )}
+
+            {currentTab === "profile" && (
               <div style={{padding:16, maxWidth:1200, margin:"0 auto"}}><h2 style={{fontSize:18, display:"flex", gap:10, alignItems:"center"}}>👤 My Library</h2>
                 <h3 style={{marginTop:20, marginBottom:10, fontSize:15, color:"var(--text-main)"}}>🕒 Watch History</h3>
                 {historyVids.length === 0 ? <p style={{color:"var(--text-muted)", fontSize:12}}>No history.</p> : renderGrid(historyVids.slice(0, 4))}
+                <h3 style={{marginTop:20, marginBottom:10, fontSize:15, color:"var(--text-main)"}}>❤️ Liked & Saved</h3>
+                {savedVids.length === 0 ? <p style={{color:"var(--text-muted)", fontSize:12}}>No saved videos.</p> : renderGrid(savedVids)}
               </div>
             )}
           </div>
 
           <div className="bottom-nav">
-            <div className={`nav-item ${currentTab === "home" ? "active" : ""}`} onClick={() => { setCurrentTab("home"); setSelected(null); if(videos.length===0) fetchVideos(); }}>Home</div>
-            <div className={`nav-item ${currentTab === "shorts" ? "active" : ""}`} onClick={() => { setCurrentTab("shorts"); setVideos([]); }}>Shorts</div>
-            <div className={`nav-item ${currentTab === "library" ? "active" : ""}`} onClick={() => setCurrentTab("library")}>Library</div>
+            <div className={`nav-item ${currentTab === "home" ? "active" : ""}`} onClick={() => { setCurrentTab("home"); setSelected(null); if(videos.length===0) fetchVideos("all"); }}>Home</div>
+            <div className={`nav-item ${currentTab === "shorts" ? "active" : ""}`} onClick={() => setCurrentTab("shorts")}>Shorts</div>
+            <div className={`nav-item ${currentTab === "profile" ? "active" : ""}`} onClick={() => setCurrentTab("library")}>Library</div>
           </div>
         </div>
       );
