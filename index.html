@@ -14,6 +14,7 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   
   <style>
+    /* 🔥 DARK & LIGHT MODE VARIABLES 🔥 */
     :root {
       --bg-main: #f5f5f7; --bg-header: rgba(255, 255, 255, 0.95); --bg-card: #ffffff;
       --bg-hover: #f2f2f7; --text-main: #1d1d1f; --text-muted: #666666;
@@ -27,7 +28,6 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
     
-    /* 🔥 SCROLL FIX: Removed height:100% to allow document to scroll naturally */
     body, html { 
       background: var(--bg-main); color: var(--text-main); 
       -webkit-tap-highlight-color: transparent; overflow-x: hidden; 
@@ -50,7 +50,7 @@
     .logo-box img { width: 100%; height: 100%; object-fit: cover; }
     .brand-text { font-weight: 700; font-size: 16px; color: var(--text-main); }
 
-    /* Search & Theme Controls */
+    /* Search Box */
     .search-wrap { display: flex; justify-content: flex-end; align-items: center; flex: 1; position: relative; gap: 6px; }
     .search-box { display: flex; align-items: center; background: transparent; border-radius: 20px; transition: all 0.3s; overflow: hidden; height: 38px; width: 38px; }
     .search-box.open { width: 100%; max-width: 250px; background: var(--bg-card); border: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
@@ -80,7 +80,6 @@
     .vid-channel { color: var(--text-muted); font-size: 11px; font-weight: 500; display: flex; align-items: center; gap: 4px; }
     .vid-stats { color: var(--text-muted); font-size: 11px; font-weight: 500; margin-top: 3px; }
 
-    /* Ad Banners */
     .ad-banner { background: var(--bg-card); border: 1px dashed var(--text-muted); padding: 20px; text-align: center; color: var(--text-muted); font-size: 12px; font-weight: 600; margin: 10px 12px; border-radius: 8px; min-height: 80px; display: flex; align-items: center; justify-content: center; }
 
     /* Action Buttons */
@@ -95,7 +94,7 @@
     .nav-icon { font-size: 20px; transition: transform 0.2s; }
     .nav-item.active .nav-icon { transform: scale(1.15); color: var(--accent); }
 
-    /* 🔥 SHORTS SWIPE ZONES FIX 🔥 */
+    /* 🔥 SHORTS SCROLL FIX 🔥 */
     .shorts-container { height: calc(100vh - 56px); height: calc(100dvh - 56px); overflow-y: scroll; scroll-snap-type: y mandatory; scroll-behavior: smooth; background: #000; position: relative; }
     .short-item { height: 100%; width: 100%; scroll-snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; }
     .short-info { position: absolute; bottom: 15px; left: 12px; right: 12px; z-index: 10; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,0.8); pointer-events: none; }
@@ -134,8 +133,7 @@
 
     function getVid(v) { return typeof v.id === "string" ? v.id : (v.id?.videoId || ""); }
     function fmt(n) { if (!n) return ""; const x = parseInt(n); if (x >= 1e9) return (x/1e9).toFixed(1)+"B"; if (x >= 1e6) return (x/1e6).toFixed(1)+"M"; if (x >= 1e3) return (x/1e3).toFixed(1)+"K"; return String(x); }
-    function ago(d) { if (!d) return ""; const days = Math.floor((Date.now() - new Date(d)) / 86400000); if (!days) return "New"; if (days < 7) return days + "d ago"; if (days < 30) return Math.floor(days/7) + "w ago"; return Math.floor(days/30) + "mo ago"; }
-    function App() {
+    function ago(d) { if (!d) return ""; const days = Math.floor((Date.now() - new Date(d)) / 86400000); if (!days) return "New"; if (days < 7) return days + "d ago"; if (days < 30) return Math.floor(days/7) + "w ago"; return Math.floor(days/30) + "mo ago"; }    function App() {
       const [showSplash, setShowSplash] = useState(true);
       const [theme, setTheme] = useState(() => localStorage.getItem("yt_theme") || "dark");
       
@@ -227,7 +225,7 @@
 
       useEffect(() => { fetchVideos("all"); }, []);
 
-      // 🔥 UNLIMITED SCROLL WITH IMPROVED LISTENER
+      // 🔥 SCROLL LISTENER FIX
       useEffect(() => {
         const handleScroll = () => {
           const scrollTop = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop;
@@ -341,8 +339,7 @@
             );
           })}
         </div>
-      );
-      return (
+      );      return (
         <div>
           {/* Splash Screen */}
           {showSplash && (
@@ -448,7 +445,7 @@
                 
                 {appending && <div style={{textAlign:"center", padding:"16px", color:"var(--text-muted)", fontSize:"12px"}}>Loading more videos... ⏳</div>}
 
-                {/* 🔥 FALLBACK LOAD MORE BUTTON (Just in case scroll fails) */}
+                {/* FALLBACK LOAD MORE BUTTON */}
                 {videos.length > 0 && !loading && !appending && !selected && (
                    <div style={{textAlign:"center", padding:"20px", paddingBottom:"40px"}}>
                      <button className="load-more-btn" onClick={() => fetchVideos(activeCat, true)}>
@@ -468,11 +465,11 @@
                     <div key={vidId + i} className="short-item">
                       {shortIndex === i ? (
                         <>
-                          {/* 🔥 INVISIBLE SWIPE ZONES TO FIX SCROLLING 🔥 */}
-                          <div style={{position:"absolute", top:0, left:0, right:0, height:"30%", zIndex:5}}></div>
-                          <div style={{position:"absolute", bottom:0, left:0, right:0, height:"30%", zIndex:5}}></div>
-                          <div style={{position:"absolute", top:0, bottom:0, left:0, width:"20%", zIndex:5}}></div>
-                          <div style={{position:"absolute", top:0, bottom:0, right:0, width:"20%", zIndex:5}}></div>
+                          {/* 🔥 INVISIBLE SWIPE ZONES 🔥 */}
+                          <div style={{position:"absolute", top:0, left:0, right:0, height:"25%", zIndex:5}}></div>
+                          <div style={{position:"absolute", bottom:0, left:0, right:0, height:"25%", zIndex:5}}></div>
+                          <div style={{position:"absolute", top:0, bottom:0, left:0, width:"15%", zIndex:5}}></div>
+                          <div style={{position:"absolute", top:0, bottom:0, right:0, width:"15%", zIndex:5}}></div>
                           
                           <iframe src={`https://www.youtube-nocookie.com/embed/${vidId}?autoplay=1&loop=1&playlist=${vidId}&controls=0&modestbranding=1&rel=0&iv_load_policy=3&disablekb=1`}
                             style={{position:"absolute", inset:0, width:"100%", height:"100%", border:"none", pointerEvents:"auto"}}
@@ -492,7 +489,7 @@
               </div>
             )}
 
-            {/* PROFILE / LIBRARY TAB */}
+            {/* PROFILE TAB */}
             {currentTab === "profile" && (
               <div style={{padding:"16px", paddingBottom:"80px"}}>
                 <div style={{display:"flex", alignItems:"center", gap:"10px", marginBottom:"16px"}}>
