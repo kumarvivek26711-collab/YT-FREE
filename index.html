@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Tech Jugad 📺</title>
   <link rel="icon" href="Tech_Jugad_150x150.png" />
-  <link rel="manifest" href="manifest.json" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -14,37 +13,46 @@
     :root { --bg-main: #f5f5f7; --bg-header: rgba(255, 255, 255, 0.95); --bg-card: #ffffff; --bg-hover: #f2f2f7; --text-main: #1d1d1f; --text-muted: #666666; --border: #e5e5ea; --accent: #00a8ff; }
     [data-theme="dark"] { --bg-main: #050505; --bg-header: rgba(5, 5, 5, 0.95); --bg-card: #111111; --bg-hover: #1f1f1f; --text-main: #ffffff; --text-muted: #aaaaaa; --border: #222222; --accent: #00a8ff; }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
-    body, html { background: var(--bg-main); color: var(--text-main); overflow-x: hidden; scroll-behavior: smooth; min-height: 100vh; }
-    ::-webkit-scrollbar { width: 0px; display: none; } 
+    body, html { background: var(--bg-main); color: var(--text-main); -webkit-tap-highlight-color: transparent; overflow-x: hidden; scroll-behavior: smooth; min-height: 100vh; }
+    ::-webkit-scrollbar { display: none; }
     .glass-header { background: var(--bg-header); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .brand-btn { display: flex; align-items: center; gap: 10px; cursor: pointer; }
     .logo-box { width: 36px; height: 36px; border-radius: 50%; overflow: hidden; box-shadow: 0 0 8px rgba(0, 168, 255, 0.6); }
     .logo-box img { width: 100%; height: 100%; object-fit: cover; }
     .brand-text { font-weight: 700; font-size: 16px; color: var(--text-main); }
     .search-wrap { display: flex; justify-content: flex-end; align-items: center; flex: 1; position: relative; gap: 6px; }
-    .search-box { display: flex; align-items: center; background: transparent; border-radius: 20px; overflow: hidden; height: 38px; width: 38px; }
-    .search-box.open { width: 100%; max-width: 250px; background: var(--bg-card); border: 1px solid var(--border); }
-    .search-input { flex: 1; border: none; background: transparent; color: var(--text-main); padding: 0 12px; font-size: 13px; outline: none; width: 0; opacity: 0; transition: 0.3s; }
+    .search-box { display: flex; align-items: center; background: transparent; border-radius: 20px; overflow: hidden; height: 38px; width: 38px; transition: 0.3s; }
+    .search-box.open { width: 100%; max-width: 250px; background: var(--bg-card); border: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    .search-input { flex: 1; border: none; background: transparent; color: var(--text-main); padding: 0 0 0 12px; font-size: 13px; outline: none; width: 0; opacity: 0; transition: 0.3s; }
     .search-box.open .search-input { width: 100%; opacity: 1; }
-    .icon-btn { width: 38px; height: 38px; background: transparent; border: none; color: var(--text-main); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-    .cat-container { display: flex; gap: 8px; overflow-x: auto; padding: 8px 12px; background: var(--bg-main); border-bottom: 1px solid var(--border); }
+    .icon-btn { width: 38px; height: 38px; background: transparent; border: none; color: var(--text-main); font-size: 18px; cursor: pointer; border-radius: 50%; }
+    .suggest-box { position: absolute; top: 46px; right: 0; width: 100%; max-width: 300px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; z-index: 200; overflow: hidden; }
+    .suggest-item { padding: 10px 14px; cursor: pointer; font-size: 13px; border-bottom: 1px solid var(--bg-hover); display: flex; gap: 8px; }
+    .cat-container { display: flex; gap: 8px; overflow-x: auto; padding: 8px 12px; border-bottom: 1px solid var(--border); }
     .cat-container::-webkit-scrollbar { display: none; }
     .cat-btn { background: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border); border-radius: 16px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
-    .cat-btn.active { background: var(--accent); color: #fff; }
-    .main-content { padding-bottom: 70px; min-height: 100vh; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; padding: 12px; }
+    .cat-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .main-content { padding-bottom: 80px; min-height: 100vh; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; padding: 12px; max-width: 1200px; margin: 0 auto; }
     .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; cursor: pointer; }
-    .thumb-wrap { position: relative; padding-bottom: 56.25%; background: var(--bg-hover); overflow: hidden; }
+    .thumb-wrap { position: relative; padding-bottom: 56.25%; background: var(--bg-hover); }
     .thumb-wrap img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-    .vid-duration { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.8); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 6px; }
+    .vid-duration { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.8); color: #fff; font-size: 10px; font-weight: 600; padding: 3px 6px; border-radius: 6px; }
     .card-info { padding: 10px; }
-    .vid-title { color: var(--text-main); font-size: 13px; font-weight: 600; -webkit-line-clamp: 2; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
-    .vid-stats { color: var(--text-muted); font-size: 11px; margin-top: 3px; }
-    .action-btn { background: var(--bg-hover); border: 1px solid var(--border); padding: 6px 14px; border-radius: 20px; font-size: 12px; color: var(--text-main); font-weight: 600; cursor: pointer; }
+    .vid-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .vid-stats { color: var(--text-muted); font-size: 11px; font-weight: 500; margin-top: 3px; }
+    .action-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+    .action-btn { background: var(--bg-hover); border: 1px solid var(--border); padding: 6px 14px; border-radius: 20px; font-size: 12px; cursor: pointer; color: var(--text-main); font-weight: 600; }
+    .action-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
     .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 56px; background: var(--bg-header); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
-    .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-muted); font-size: 10px; cursor: pointer; }
+    .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-muted); font-size: 10px; font-weight: 600; cursor: pointer; width: 33%; }
     .nav-item.active { color: var(--accent); }
-    .shorts-container { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; background: #000; }
-    .short-item { height: 100vh; width: 100%; scroll-snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; }
+    .nav-icon { font-size: 20px; }
+    .shorts-container { height: calc(100vh - 56px); height: calc(100dvh - 56px); overflow-y: scroll; scroll-snap-type: y mandatory; background: #000; position: relative; }
+    .short-item { height: 100%; width: 100%; scroll-snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; }
+    .short-info { position: absolute; bottom: 15px; left: 12px; color: #fff; z-index: 10; pointer-events: none; }
+    .swipe-zone { position: absolute; left: 0; width: 100%; z-index: 5; height: 25%; }
+    .swipe-zone.top { top: 0; } .swipe-zone.bottom { bottom: 0; }
   </style>
 </head>
 <body>
@@ -52,46 +60,140 @@
   <script type="text/babel">
     const { useState, useEffect } = React;
     const BACKEND_URL = "https://yt-free.onrender.com";
+    const CATS = [{ id: "all", label: "For You" }, { id: "10", label: "Music" }, { id: "20", label: "Gaming" }, { id: "24", label: "Entertainment" }, { id: "28", label: "Tech" }];
+    const POPULAR_TERMS = ["New Song", "Latest Movie", "Comedy", "Hindi Dubbed", "Tech Review", "Vlog"];
+    const DEFAULT_SEEDS = ["latest hindi songs", "trending india new", "new bollywood movie", "indian comedy video"];
+    const SHORTS_SEEDS = ["#shorts viral india", "#shorts hindi comedy", "#shorts trending song", "#shorts dance india"];
+    const SCROLL_TRICKS = ["2024", "HD", "viral", "top", "latest"];
+
+    function getVid(v) { return typeof v.id === "string" ? v.id : (v.id?.videoId || ""); }
+    function fmt(n) { if(!n) return ""; const x=parseInt(n); if(x>=1e9) return (x/1e9).toFixed(1)+"B"; if(x>=1e6) return (x/1e6).toFixed(1)+"M"; if(x>=1e3) return (x/1e3).toFixed(1)+"K"; return String(x); }
+    function ago(d) { if(!d) return ""; const days=Math.floor((Date.now()-new Date(d))/86400000); if(!days) return "New"; if(days<7) return days+"d ago"; if(days<30) return Math.floor(days/7)+"w ago"; return Math.floor(days/30)+"mo ago"; }
 
     function App() {
       const [theme, setTheme] = useState(() => localStorage.getItem("yt_theme") || "dark");
-      useEffect(() => { document.documentElement.setAttribute("data-theme", theme); }, [theme]);
+      useEffect(() => { document.documentElement.setAttribute("data-theme", theme); localStorage.setItem("yt_theme", theme); }, [theme]);
+      
       const [currentTab, setCurrentTab] = useState("home");
       const [videos, setVideos] = useState([]);
       const [selected, setSelected] = useState(null);
       const [loading, setLoading] = useState(false);
+      const [appending, setAppending] = useState(false);
       const [query, setQuery] = useState("");
+      const [activeCat, setActiveCat] = useState("all");
+      const [searchOpen, setSearchOpen] = useState(false);
+      const [suggestions, setSuggestions] = useState([]);
       
-      async function fetchVideos(cat = "all", isAppend = false, q = "") {
-        setLoading(true);
-        let url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(q || "latest hindi -shorts")}&maxResults=24`;
-        try {
-          const res = await fetch(url);
-          const data = await res.json();
-          if (data.items) setVideos(prev => isAppend ? [...prev, ...data.items] : data.items);
-        } catch(e) { console.error(e); }
-        setLoading(false);
+      const [savedVids, setSavedVids] = useState(() => JSON.parse(localStorage.getItem("yt_saved_vids") || "[]"));
+      const [historyVids, setHistoryVids] = useState(() => JSON.parse(localStorage.getItem("yt_watch_history") || "[]"));
+      const [searchHistory, setSearchHistory] = useState(() => JSON.parse(localStorage.getItem("yt_search_history") || "[]"));
+
+      const [shortsVids, setShortsVids] = useState([]);
+      const [shortIndex, setShortIndex] = useState(0);
+      const [loadingShorts, setLoadingShorts] = useState(false);
+
+      function executeSearch(q) {
+        setQuery(q); setSuggestions([]); setSearchOpen(false); setActiveCat(""); setCurrentTab("home"); setSelected(null);
+        const newHist = [q, ...searchHistory.filter(w => w !== q)].slice(0,10);
+        setSearchHistory(newHist); localStorage.setItem("yt_search_history", JSON.stringify(newHist));
+        window.scrollTo(0,0); fetchVideos(null, false, q);
       }
 
-      useEffect(() => { fetchVideos(); }, []);
+      async function fetchVideos(cat, isAppend = false, customQuery = null) {
+        if(isAppend) setAppending(true); else { setLoading(true); setVideos([]); }
+        try {
+          let url = ""; let fq = customQuery !== null ? customQuery : query;
+          let seed = searchHistory.length > 0 ? searchHistory[Math.floor(Math.random()*searchHistory.length)] : DEFAULT_SEEDS[Math.floor(Math.random()*DEFAULT_SEEDS.length)];
+          let trick = isAppend ? " " + SCROLL_TRICKS[Math.floor(Math.random()*SCROLL_TRICKS.length)] : "";
 
-      window.onscroll = () => {
-        if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500 && !loading) {
-          fetchVideos("all", true, query);
-        }
-      };
+          if (fq) url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(fq + trick + " Hindi -shorts")}&maxResults=20`;
+          else if (cat && cat !== "all") url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(CATS.find(c=>c.id===cat).label + " Hindi latest -shorts" + trick)}&maxResults=20`;
+          else url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(seed + " Hindi latest -shorts" + trick)}&maxResults=20`;
+
+          const res = await fetch(url); const data = await res.json();
+          if (data.items) {
+            const newVids = data.items.filter(v => getVid(v));
+            if(isAppend) setVideos(prev => [...prev, ...newVids.filter(nv => !prev.some(pv => getVid(pv) === getVid(nv)))]);
+            else setVideos(newVids.sort(() => Math.random() - 0.5));
+          }
+        } catch (e) { console.error("Fetch Error"); } finally { setLoading(false); setAppending(false); }
+      }
+
+      useEffect(() => { fetchVideos("all"); }, []);
+
+      useEffect(() => {
+        const handleScroll = () => {
+          if (currentTab === "home" && !selected && (window.innerHeight + window.scrollY >= document.body.offsetHeight - 800) && !loading && !appending && videos.length > 0) {
+            fetchVideos(activeCat, true);
+          }
+        };
+        window.addEventListener('scroll', handleScroll); return () => window.removeEventListener('scroll', handleScroll);
+      }, [loading, appending, activeCat, query, videos.length, currentTab, selected]);
+
+      function handleVideoClick(v) {
+        setSelected(v);
+        const newHist = [v, ...historyVids.filter(vid => getVid(vid) !== getVid(v))].slice(0, 40);
+        setHistoryVids(newHist); localStorage.setItem("yt_watch_history", JSON.stringify(newHist));
+        window.scrollTo(0,0);
+      }
+
+      function toggleSave(v) {
+        let newList = savedVids.some(vid => getVid(vid) === getVid(v)) ? savedVids.filter(vid => getVid(vid) !== getVid(v)) : [v, ...savedVids];
+        setSavedVids(newList); localStorage.setItem("yt_saved_vids", JSON.stringify(newList));
+      }
+
+      async function fetchShorts(isAppend = false) {
+        if(!isAppend) { setLoadingShorts(true); setShortsVids([]); setShortIndex(0); }
+        try {
+          const seed = SHORTS_SEEDS[Math.floor(Math.random()*SHORTS_SEEDS.length)];
+          const res = await fetch(`${BACKEND_URL}/api/search?q=${encodeURIComponent(seed)}&maxResults=15`);
+          const data = await res.json();
+          if (data.items) {
+             const newVids = data.items.filter(v => getVid(v));
+             if(isAppend) setShortsVids(prev => [...prev, ...newVids.filter(nv => !prev.some(pv => getVid(pv) === getVid(nv)))]);
+             else setShortsVids(newVids.sort(() => Math.random() - 0.5));
+          }
+        } catch(e) {} setLoadingShorts(false);
+      }
+
+      useEffect(() => { if (currentTab === "shorts" && shortsVids.length === 0) fetchShorts(); }, [currentTab]);
+
+      function handleShortsScroll(e) {
+        const idx = Math.round(e.target.scrollTop / e.target.clientHeight);
+        if (idx !== shortIndex) { setShortIndex(idx); if (idx >= shortsVids.length - 3 && !loadingShorts) fetchShorts(true); }
+      }
+
+      const renderGrid = (list) => (
+        <div className="grid">
+          {list.map((v, i) => {
+            const s = v.snippet || {}; const st = v.statistics || {};
+            return (
+              <div key={getVid(v) + i} className="card" onClick={() => handleVideoClick(v)}>
+                <div className="thumb-wrap"><img src={s.thumbnails?.medium?.url} /><div className="vid-duration">▶ HD</div></div>
+                <div className="card-info">
+                  <div className="vid-title">{s.title}</div>
+                  <div className="vid-stats">👤 {s.channelTitle} <br/> {st.viewCount ? fmt(st.viewCount)+" views • " : ""} {ago(s.publishedAt)}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      );
 
       return (
         <div>
           {currentTab !== "shorts" && (
             <div className="glass-header">
-              <div className="brand-btn" onClick={() => window.location.reload()}>
-                <div className="logo-box"><img src="Tech_Jugad_150x150.png" /></div>
-                <span className="brand-text">Tech Jugad</span>
+              <div className="brand-btn" onClick={() => { setSelected(null); setQuery(""); setActiveCat("all"); fetchVideos("all"); window.scrollTo(0,0); }}>
+                <div className="logo-box"><img src="Tech_Jugad_150x150.png" /></div><span className="brand-text">Tech Jugad</span>
               </div>
               <div className="search-wrap">
-                <button className="icon-btn" onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')}>🌓</button>
-                <input className="search-input" style={{width:100, opacity:1}} placeholder="Search..." onKeyDown={e => e.key === 'Enter' && fetchVideos("all", false, e.target.value)} />
+                {!searchOpen && <button className="icon-btn" onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')}>{theme === 'light' ? '🌙' : '☀️'}</button>}
+                <div className={`search-box ${searchOpen ? 'open' : ''}`}>
+                  <input className="search-input" value={query} onChange={e => { setQuery(e.target.value); setSuggestions(POPULAR_TERMS.filter(t=>t.toLowerCase().includes(e.target.value.toLowerCase()))); }} onKeyDown={e => e.key==='Enter' && executeSearch(query)} placeholder="Search..." />
+                  <button className="icon-btn" onClick={() => searchOpen && query ? executeSearch(query) : setSearchOpen(!searchOpen)}>🔍</button>
+                </div>
+                {searchOpen && suggestions.length > 0 && <div className="suggest-box">{suggestions.map((s, i) => <div key={i} className="suggest-item" onClick={() => executeSearch(s)}>🔍 {s}</div>)}</div>}
               </div>
             </div>
           )}
@@ -100,33 +202,63 @@
             {currentTab === "home" && (
               <div>
                 {selected && (
-                  <div style={{padding:10}}>
-                    <iframe src={`https://www.youtube-nocookie.com/embed/${selected.id.videoId || selected.id}?autoplay=1`} style={{width:"100%", height:250, border:0}} allowFullScreen />
-                    <h3 style={{marginTop:10}}>{selected.snippet.title}</h3>
-                    <button className="action-btn" onClick={() => setSelected(null)}>Back to Home</button>
+                  <div style={{maxWidth:900, margin:"0 auto", padding:12}}>
+                    <div style={{position:"relative", paddingBottom:"56.25%", borderRadius:12, overflow:"hidden", background:"#000"}}>
+                      <iframe src={`https://www.youtube-nocookie.com/embed/${getVid(selected)}?autoplay=1&rel=0`} style={{position:"absolute", inset:0, width:"100%", height:"100%", border:0}} allow="autoplay; fullscreen" allowFullScreen />
+                    </div>
+                    <h2 style={{fontSize:15, marginTop:12}}>{selected.snippet?.title}</h2>
+                    <div className="action-row">
+                      <button className="action-btn" onClick={() => { setSelected(null); executeSearch(selected.snippet?.channelTitle + " channel"); }}>👤 {selected.snippet?.channelTitle}</button>
+                      <button className={`action-btn ${savedVids.some(vid => getVid(vid) === getVid(selected)) ? 'active' : ''}`} onClick={() => toggleSave(selected)}>{savedVids.some(vid => getVid(vid) === getVid(selected)) ? "❤️ Saved" : "🤍 Save"}</button>
+                      <button className="action-btn" onClick={() => { navigator.clipboard.writeText(`https://youtube.com/watch?v=${getVid(selected)}`); alert("Link Copied!"); }}>📤 Share</button>
+                    </div>
                   </div>
                 )}
-                <div className="grid">
-                  {videos.map((v, i) => (
-                    <div key={i} className="card" onClick={() => { setSelected(v); window.scrollTo(0,0); }}>
-                      <div className="thumb-wrap"><img src={v.snippet.thumbnails.medium.url} /><span className="vid-duration">HD</span></div>
-                      <div className="card-info"><div className="vid-title">{v.snippet.title}</div></div>
-                    </div>
-                  ))}
-                </div>
+                {!selected && (
+                  <div className="cat-container">
+                    {CATS.map(cat => <button key={cat.id} className={`cat-btn ${activeCat === cat.id ? 'active' : ''}`} onClick={() => { setActiveCat(cat.id); setQuery(""); fetchVideos(cat.id); }}>{cat.label}</button>)}
+                  </div>
+                )}
+                {loading ? <div style={{textAlign:"center", padding:40}}>Loading... ⏳</div> : renderGrid(videos.filter(v => getVid(v) !== (selected ? getVid(selected) : "")))}
+                {appending && <div style={{textAlign:"center", padding:16}}>Loading more videos... ⏳</div>}
               </div>
             )}
+
             {currentTab === "shorts" && (
-              <div className="shorts-container">
-                 <div className="short-item"><div style={{color:'#fff'}}>Shorts Section Ready! Swipe Up..</div></div>
+              <div className="shorts-container" onScroll={handleShortsScroll}>
+                {shortsVids.map((v, i) => (
+                  <div key={i} className="short-item">
+                    {shortIndex === i ? (
+                      <>
+                        <div className="swipe-zone top"></div><div className="swipe-zone bottom"></div>
+                        <iframe src={`https://www.youtube-nocookie.com/embed/${getVid(v)}?autoplay=1&loop=1&playlist=${getVid(v)}&controls=0&modestbranding=1&rel=0`} style={{position:"absolute", inset:0, width:"100%", height:"100%", border:0}} allow="autoplay; fullscreen" />
+                      </>
+                    ) : <img src={v.snippet?.thumbnails?.high?.url || v.snippet?.thumbnails?.medium?.url} style={{position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0.3}} />}
+                    <div className="short-info">
+                      <div className="short-title">{v.snippet?.title}</div>
+                      <div style={{background:"rgba(0,0,0,0.5)", padding:"4px 8px", borderRadius:10, display:"inline-block", fontSize:12, fontWeight:500}}>👤 {v.snippet?.channelTitle}</div>
+                    </div>
+                  </div>
+                ))}
+                {loadingShorts && <div style={{color:"#fff", textAlign:"center", padding:40}}>Loading... ⏳</div>}
+              </div>
+            )}
+
+            {currentTab === "profile" && (
+              <div style={{padding:16}}>
+                <h2>👤 My Library</h2>
+                <h3 style={{marginTop:20, marginBottom:10}}>🕒 Watch History</h3>
+                {historyVids.length === 0 ? <p style={{color:"var(--text-muted)"}}>No history.</p> : renderGrid(historyVids.slice(0,4))}
+                <h3 style={{marginTop:20, marginBottom:10}}>❤️ Liked & Saved</h3>
+                {savedVids.length === 0 ? <p style={{color:"var(--text-muted)"}}>No saved videos.</p> : renderGrid(savedVids)}
               </div>
             )}
           </div>
 
           <div className="bottom-nav">
-            <div className={`nav-item ${currentTab === "home" ? "active" : ""}`} onClick={() => setCurrentTab("home")}>🏠<span>Home</span></div>
-            <div className={`nav-item ${currentTab === "shorts" ? "active" : ""}`} onClick={() => setCurrentTab("shorts")}>📱<span>Shorts</span></div>
-            <div className={`nav-item ${currentTab === "profile" ? "active" : ""}`} onClick={() => setCurrentTab("profile")}>❤️<span>Library</span></div>
+            <div className={`nav-item ${currentTab === "home" ? "active" : ""}`} onClick={() => setCurrentTab("home")}><span className="nav-icon">🏠</span><span>Home</span></div>
+            <div className={`nav-item ${currentTab === "shorts" ? "active" : ""}`} onClick={() => setCurrentTab("shorts")}><span className="nav-icon">📱</span><span>Shorts</span></div>
+            <div className={`nav-item ${currentTab === "profile" ? "active" : ""}`} onClick={() => setCurrentTab("profile")}><span className="nav-icon">❤️</span><span>Library</span></div>
           </div>
         </div>
       );
