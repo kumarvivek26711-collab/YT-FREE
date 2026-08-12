@@ -206,14 +206,14 @@
           // Logic: ALWAYS use search endpoint when appending so we get fresh data
           if (isAppend) {
             let q = finalQuery ? (finalQuery + " " + cacheBuster) : randomSeed;
-            url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(q)}&maxResults=24`;
+            url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(q)}&maxResults=100`;
           } else {
             if (finalQuery) {
-              url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(finalQuery)}&maxResults=24`;
+              url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(finalQuery)}&maxResults=100`;
             } else if (cat && cat !== "all") {
-              url = `${BACKEND_URL}/api/trending?categoryId=${cat}&maxResults=24`; // Trending for initial category load
+              url = `${BACKEND_URL}/api/trending?categoryId=${cat}&maxResults=100`;
             } else {
-              url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(randomSeed)}&maxResults=24`;
+              url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(randomSeed)}&maxResults=100`;
             }
           }
           
@@ -366,6 +366,7 @@
         }
         return () => { if (player && player.destroy) player.destroy(); };
       }, [currentTab, shortIndex]);
+      
       return (
         <div>
           {currentTab !== "shorts" && (
@@ -389,164 +390,118 @@
                 
                 {searchOpen && suggestions.length > 0 && (
                   <div className="suggest-box">
-                    {suggestions.map((s, i) => (
-                      <div key={i} className="suggest-item" onClick={() => executeSearch(s)}>
-                        <span>🔍</span> {s}
-                      </div>
-                    ))}
+                    {suggestions.map((s, i) => <div key={i} className="suggest-item" onClick={() => executeSearch(s)}>🔎 {s}</div>)}
                   </div>
                 )}
               </div>
             </div>
           )}
 
-          <div className="main-content">
-            {currentTab === "home" && (
-              <div>
-                {selected && (
-                  <div id="player-container" style={{maxWidth:900, margin:"0 auto", padding:"16px"}}>
-                    <div style={{position:"relative", paddingBottom:"56.25%", borderRadius:"16px", overflow:"hidden", background:"#000", boxShadow:"0 4px 20px rgba(0,0,0,0.1)"}}>
-                      <iframe id="yt-iframe" src={`https://www.youtube-nocookie.com/embed/${getVid(selected)}?autoplay=1&rel=0`}
-                        style={{position:"absolute", inset:0, width:"100%", height:"100%", border:"none"}} 
-                        allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen />
-                    </div>
-                    <h2 style={{fontSize:"17px", fontWeight:700, margin:"16px 0 10px", color:"#111"}}>{selected.snippet?.title}</h2>
-                    
-                    <div style={{display:"flex", alignItems:"center", gap:"10px", flexWrap:"wrap"}}>
-                      <div style={{background:"#f2f2f7", padding:"8px 14px", borderRadius:"20px", fontSize:"13px", color:"#444", fontWeight:"500"}}>
-                        👤 {selected.snippet?.channelTitle}
-                      </div>
-                      <button onClick={goFullscreen} style={{background:"#1d1d1f", color:"#fff", border:"none", padding:"8px 16px", borderRadius:"20px", fontSize:"13px", fontWeight:"600", cursor:"pointer", display:"flex", alignItems:"center", gap:"6px"}}>
-                        🔄 Rotate & Full Screen
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {error && (
-                  <div style={{background:"#fff3cd", border:"1px solid #ffc107", color:"#856404", padding:"12px 16px", margin:"0 16px", borderRadius:"8px", fontSize:"13px", marginTop:"10px"}}>
-                    ⚠️ {error}
-                  </div>
-                )}
-
-                {!selected && (
-                  <div className="cat-container">
-                    {CATS.map(cat => (
-                      <button key={cat.id} className={`cat-btn ${activeCat === cat.id ? 'active' : ''}`}
-                        onClick={() => { setActiveCat(cat.id); setQuery(""); fetchVideos(cat.id); setSearchOpen(false); }}>
-                        {cat.icon} {cat.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {selected && <h3 style={{padding:"0 16px", marginTop:"10px", color:"#111", fontSize:"16px", fontWeight:700}}>🔥 Up Next / Recommended</h3>}
-
+          {currentTab === "home" && (
+            <div className="main-content">
+              <div className="cat-container">
+                {CATS.map(c => (
+                  <button key={c.id} className={`cat-btn ${activeCat === c.id ? 'active' : ''}`} onClick={() => { setActiveCat(c.id); setSelected(null); setQuery(""); fetchVideos(c.id); }}>
+                    {c.icon} {c.label}
+                  </button>
+                ))}
+              </div>
+              
+              {error && <div style={{padding: '20px', color: 'red', textAlign: 'center'}}>{error}</div>}
+              
+              {loading && <div style={{textAlign: 'center', padding: '40px'}}>⏳ Loading 100 videos...</div>}
+              
+              {!loading && videos.length > 0 && (
                 <div className="grid">
-                  {loading ? Array(12).fill(0).map((_, i) => (
-                    <div key={i} className="skeleton">
-                      <div className="skel-img"></div>
-                      <div className="skel-text"></div>
-                      <div className="skel-text short"></div>
-                    </div>
-                  )) : videos.filter(v => getVid(v) !== (selected ? getVid(selected) : "")).map((v, index) => {
-                    const s = v.snippet || {};
-                    return (
-                      <div key={getVid(v) + index} className="card" onClick={() => handleVideoClick(v)}>
-                        <div className="thumb-wrap"><img src={s.thumbnails?.medium?.url || ""} loading="lazy" /></div>
-                        <div className="card-info">
-                          <div className="vid-title">{s.title}</div>
-                          <div className="vid-channel">{s.channelTitle}</div>
-                        </div>
+                  {videos.map(v => (
+                    <div key={getVid(v)} className="card" onClick={() => handleVideoClick(v)}>
+                      <div className="thumb-wrap">
+                        <img src={v.thumbnail?.url || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 180'%3E%3Crect fill='%23ccc' width='320' height='180'/%3E%3C/svg%3E"} alt={v.title} />
                       </div>
-                    );
-                  })}
-                </div>
-                {appending && <div style={{textAlign:"center", padding:"20px", color:"#888"}}>Loading more... ⏳</div>}
-              </div>
-            )}
-
-            {currentTab === "shorts" && (
-              <div className="shorts-container" onScroll={handleShortsScroll}>
-                {shortsVids.map((v, i) => {
-                  const vidId = getVid(v); const s = v.snippet || {};
-                  return (
-                    <div key={vidId + i} className="short-item">
-                      {shortIndex === i ? (
-                        <iframe id="short-iframe" src={`https://www.youtube-nocookie.com/embed/${vidId}?autoplay=1&enablejsapi=1&controls=0&modestbranding=1&rel=0`}
-                          style={{position:"absolute", inset:0, width:"100%", height:"100%", border:"none", pointerEvents:"auto"}}
-                          allow="autoplay; encrypted-media; fullscreen" allowFullScreen />
-                      ) : (
-                        <img src={s.thumbnails?.high?.url || s.thumbnails?.medium?.url} loading="lazy" style={{position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity: 0.3}} />
-                      )}
-                      <div className="short-info">
-                        <div className="short-title">{s.title}</div>
-                        <div className="short-channel">👤 {s.channelTitle}</div>
+                      <div className="card-info">
+                        <div className="vid-title">{v.title}</div>
+                        <div className="vid-channel">{v.channelTitle}</div>
                       </div>
                     </div>
-                  );
-                })}
-                {loadingShorts && <div style={{color:"#fff", textAlign:"center", padding:"40px", fontSize:"14px"}}>Loading... ⏳</div>}
-              </div>
-            )}
-
-            {currentTab === "profile" && (
-              <div style={{padding:"20px", maxWidth:"1200px", margin:"0 auto"}}>
-                <div style={{textAlign:"center", marginBottom:"20px"}}>
-                  <div style={{fontSize:"50px", marginBottom:"10px"}}>👤</div>
-                  <h2 style={{color:"#111", fontSize:"22px", fontWeight:"700"}}>Library & History</h2>
+                  ))}
                 </div>
-                
-                <h3 style={{fontSize:"16px", fontWeight:700, margin:"10px 0", color:"#111", paddingLeft:"8px", borderLeft:"4px solid #ff0055"}}>🕒 Recently Watched</h3>
-                
-                {history.length === 0 ? (
-                  <p style={{color:"#666", textAlign:"center", padding:"40px", background:"#fff", borderRadius:"12px", border:"1px solid #eaeaea"}}>Abhi tak koi video nahi dekhi hai 😅</p>
-                ) : (
-                  <div className="grid" style={{padding:"10px 0"}}>
-                    {history.map((v, index) => {
-                      const s = v.snippet || {};
-                      return (
-                        <div key={"hist" + getVid(v) + index} className="card" onClick={() => { setCurrentTab("home"); handleVideoClick(v); }}>
-                          <div className="thumb-wrap"><img src={s.thumbnails?.medium?.url || s.thumbnails?.default?.url || ""} loading="lazy" /></div>
-                          <div className="card-info">
-                            <div className="vid-title">{s.title}</div>
-                            <div className="vid-channel">{s.channelTitle}</div>
-                          </div>
-                        </div>
-                      );
-                    })}
+              )}
+              
+              {appending && <div style={{textAlign: 'center', padding: '20px'}}>⏳ Loading more...</div>}
+            </div>
+          )}
+
+          {currentTab === "shorts" && (
+            <div className="shorts-container" onScroll={handleShortsScroll}>
+              {shortsVids.map((v, i) => (
+                <div key={i} className="short-item">
+                  <iframe id={i === shortIndex ? "short-iframe" : undefined} width="100%" height="100%" src={`https://www.youtube-nocookie.com/embed/${getVid(v)}?fs=1`} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
+                  <div className="short-info">
+                    <div className="short-title">{v.title}</div>
+                    <div className="short-channel">{v.channelTitle}</div>
                   </div>
-                )}
+                </div>
+              ))}
+              {loadingShorts && <div style={{height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff'}}>Loading Shorts...</div>}
+            </div>
+          )}
+
+          {selected && (
+            <div id="player-container" style={{background: '#000', padding: '16px', position: 'relative'}}>
+              <button onClick={() => setSelected(null)} style={{position: 'absolute', top: '10px', right: '10px', background: '#ff0055', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', zIndex: 50, fontSize: '12px', fontWeight: '600'}}>✕ Close</button>
+              <div style={{background: '#000', aspectRatio: '16/9', borderRadius: '8px', overflow: 'hidden'}}>
+                <iframe id="yt-iframe" width="100%" height="100%" src={`https://www.youtube-nocookie.com/embed/${getVid(selected)}?autoplay=1`} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
               </div>
-            )}
-            
-          </div>
+              <div style={{color: '#fff', marginTop: '16px'}}>
+                <h2 style={{fontSize: '18px', fontWeight: '600', marginBottom: '8px'}}>{selected.title}</h2>
+                <p style={{fontSize: '14px', color: '#aaa'}}>{selected.channelTitle}</p>
+              </div>
+              <button onClick={goFullscreen} style={{marginTop: '12px', background: '#ff0055', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600'}}>🎬 Fullscreen</button>
+            </div>
+          )}
 
           <div className="bottom-nav">
-            <div className={`nav-item ${currentTab === "home" ? "active" : ""}`} onClick={() => { if(currentTab==='home') handleHomeRefresh(); else setCurrentTab("home"); }}>
-              <div className="nav-icon">{currentTab === "home" ? "🏠" : "🏡"}</div>
-              <span>Home</span>
+            <div className={`nav-item ${currentTab === 'home' ? 'active' : ''}`} onClick={() => { setCurrentTab("home"); setSelected(null); }}>
+              <div className="nav-icon">🏠</div>
+              <div>Home</div>
             </div>
-            
-            <div className={`nav-item ${currentTab === "shorts" ? "active" : ""}`} onClick={() => setCurrentTab("shorts")}>
-              <div className="nav-icon">{currentTab === "shorts" ? "📱" : "📱"}</div>
-              <span>Shorts</span>
+            <div className={`nav-item ${currentTab === 'history' ? 'active' : ''}`} onClick={() => { setCurrentTab("history"); setSelected(null); }}>
+              <div className="nav-icon">⏱️</div>
+              <div>History</div>
             </div>
-            
-            <div className={`nav-item ${currentTab === "profile" ? "active" : ""}`} onClick={() => setCurrentTab("profile")}>
-              <div className="nav-icon">{currentTab === "profile" ? "👤" : "👤"}</div>
-              <span>Library</span>
+            <div className={`nav-item ${currentTab === 'shorts' ? 'active' : ''}`} onClick={() => { setCurrentTab("shorts"); setSelected(null); }}>
+              <div className="nav-icon">🎬</div>
+              <div>Shorts</div>
             </div>
           </div>
 
+          {currentTab === "history" && (
+            <div className="main-content">
+              <div style={{padding: '16px', color: '#666', textAlign: 'center'}}>
+                {history.length === 0 ? "No history yet" : `${history.length} videos watched`}
+              </div>
+              {history.length > 0 && (
+                <div className="grid">
+                  {history.map(v => (
+                    <div key={getVid(v)} className="card" onClick={() => handleVideoClick(v)}>
+                      <div className="thumb-wrap">
+                        <img src={v.thumbnail?.url || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 180'%3E%3Crect fill='%23ccc' width='320' height='180'/%3E%3C/svg%3E"} alt={v.title} />
+                      </div>
+                      <div className="card-info">
+                        <div className="vid-title">{v.title}</div>
+                        <div className="vid-channel">{v.channelTitle}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       );
     }
-
-    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
-  </script>
-  <script>
-    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('service-worker.js').catch(()=>{}); }
+    
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
   </script>
 </body>
 </html>
