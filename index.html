@@ -338,7 +338,6 @@
     }
     
     @keyframes spin { to { transform: rotate(360deg); } }
-    
     /* Shorts UI */
     .shorts-container {
       height: calc(100vh - 60px);
@@ -446,20 +445,20 @@
       border-radius: 2px;
     }
     
+    /* Player */
     #player-container {
-  position: fixed; 
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: #0f0f1e;
-  padding: 16px;
-  padding-top: 60px; 
-  z-index: 2000; 
-  overflow-y: auto;
-  padding-bottom: 80px; 
-}
-
+      position: fixed; 
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #0f0f1e;
+      padding: 16px;
+      padding-top: 60px; 
+      z-index: 2000; 
+      overflow-y: auto;
+      padding-bottom: 80px; 
+    }
     
     .close-btn {
       position: absolute;
@@ -689,7 +688,6 @@
           fetchShortsVideos();
         }
       }, [currentTab]);
-
       return (
         <div style={{minHeight: '100vh', display: 'flex', flexDirection: 'column'}}>
           {currentTab === "home" && (
@@ -765,7 +763,24 @@
             <div className="shorts-container" onScroll={handleShortsScroll}>
               {shortsVids.map((v, i) => (
                 <div key={i} className="short-item">
-                  <iframe id={i === shortIndex ? "short-iframe" : undefined} width="100%" height="100%" src={`https://www.youtube-nocookie.com/embed/${getVid(v)}?fs=1`} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
+                  
+                  {/* Performance Fix: Sirf aas-paas wale shorts iframe load honge */}
+                  {Math.abs(i - shortIndex) <= 1 ? (
+                    <iframe 
+                      id={i === shortIndex ? "short-iframe" : undefined} 
+                      width="100%" 
+                      height="100%" 
+                      src={`https://www.youtube-nocookie.com/embed/${getVid(v)}?autoplay=${i === shortIndex ? 1 : 0}&controls=1&modestbranding=1`} 
+                      frameBorder="0" 
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                      allowFullScreen>
+                    </iframe>
+                  ) : (
+                    <div style={{width: '100%', height: '100%', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                       <div className="loading-spinner"></div>
+                    </div>
+                  )}
+
                   <div className="short-info">
                     <div className="short-title">{v.title}</div>
                     <div className="short-channel">{v.channelTitle}</div>
@@ -787,6 +802,24 @@
                 <p className="player-channel">{selected.channelTitle}</p>
               </div>
               <button className="fullscreen-btn" onClick={goFullscreen}>🎬 Fullscreen</button>
+              
+              {/* Naya Code: Niche aur videos dikhane ke liye */}
+              <div style={{marginTop: '30px', paddingBottom: '40px'}}>
+                <h3 style={{color: '#fff', fontSize: '18px', marginBottom: '15px'}}>Up Next / Recommendations</h3>
+                <div className="grid" style={{padding: '0'}}>
+                  {videos.filter(v => getVid(v) !== getVid(selected)).map(v => (
+                    <div key={getVid(v)} className="card smooth" onClick={() => handleVideoClick(v)}>
+                      <div className="thumb-wrap">
+                        <img src={v.thumbnail?.url || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 180'%3E%3Crect fill='%23333' width='320' height='180'/%3E%3C/svg%3E"} alt={v.title} />
+                      </div>
+                      <div className="card-info">
+                        <div className="vid-title">{v.title}</div>
+                        <div className="vid-channel">{v.channelTitle}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 
