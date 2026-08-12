@@ -20,7 +20,6 @@
   
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
-    /* FIX: Changed height:100% to min-height:100vh so window scroll works for infinite loading */
     body, html { background: #f5f5f7; color: #1d1d1f; -webkit-tap-highlight-color: transparent; width: 100%; min-height: 100vh; overflow-x: hidden; scroll-behavior: smooth; }
     ::-webkit-scrollbar { width: 0px; display: none; }
 
@@ -176,21 +175,30 @@
 
       async function fetchVideos(cat, isAppend = false, customQuery = null) {
         if (isAppend) setAppending(true);
-        else { setLoading(true); setVideos([]); setError(""); }
+        else { setLoading(true); setError(""); }
         try {
-          let url = ""; let finalQuery = customQuery !== null ? customQuery : query;
+          let url = ""; 
+          let finalQuery = customQuery !== null ? customQuery : query;
+          
+          // 🔥 SCROLL FIX: Har scroll par naya suffix jodeaga, taaki backend cache duplicate na bheje!
+          const dynamicSuffixes = ["new", "2026", "hd", "viral", "trending", "best", "top", "latest hits", "india"];
           let randomSeed = RANDOM_SEEDS[Math.floor(Math.random() * RANDOM_SEEDS.length)];
+          let suffix = dynamicSuffixes[Math.floor(Math.random() * dynamicSuffixes.length)];
 
           if (finalQuery) {
             let backendQuery = finalQuery;
+            if (isAppend) backendQuery += " " + suffix;
             if (!backendQuery.toLowerCase().includes("india") && !backendQuery.toLowerCase().includes("hindi")) backendQuery += " India";
             url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(backendQuery)}&maxResults=24`;
           } else if (cat && cat !== "all") {
             if (isAppend) {
                let catLabel = CATS.find(c => c.id === cat).label;
-               url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(catLabel + " India")}&maxResults=24`;
-            } else url = `${BACKEND_URL}/api/trending?categoryId=${cat}&maxResults=24`;
+               url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(catLabel + " " + suffix)}&maxResults=24`;
+            } else {
+               url = `${BACKEND_URL}/api/trending?categoryId=${cat}&maxResults=24`;
+            }
           } else {
+             if (isAppend) randomSeed += " " + suffix;
              url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(randomSeed)}&maxResults=24`;
           }
           
@@ -201,29 +209,36 @@
           
           if (data.items && data.items.length > 0) {
             const newVids = data.items.filter(v => getVid(v)); 
-            if (isAppend) setVideos(prev => [...prev, ...newVids.filter(nv => !prev.some(pv => getVid(pv) === getVid(nv)))]);
-            else setVideos(newVids.sort(() => Math.random() - 0.5));
-          } else throw new Error("No videos returned from API");
+            if (isAppend) {
+               setVideos(prev => {
+                  const combined = [...prev, ...newVids.filter(nv => !prev.some(pv => getVid(pv) === getVid(nv)))];
+                  return combined;
+               });
+            } else {
+               setVideos(newVids.sort(() => Math.random() - 0.5));
+            }
+          }
         } catch (e) { setError(e.message); }
         setLoading(false); setAppending(false);
       }
 
       useEffect(() => { fetchVideos("all"); }, []);
 
-      // FIX: Improved scroll logic with documentElement for exact measurements
+      // 🔥 SCROLL FIX: Bulletproof scroll detection for Mobile & Desktop
       useEffect(() => {
         const handleScroll = () => {
           if (currentTab !== "home") return;
-          const scrollPos = window.innerHeight + window.scrollY;
+          const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+          const windowHeight = window.innerHeight;
           const docHeight = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
           
-          if (scrollPos >= docHeight - 1500 && !loading && !appending && videos.length > 0) {
+          if (docHeight - (scrollTop + windowHeight) <= 1800 && !loading && !appending) {
             fetchVideos(activeCat, true);
           }
         };
         window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
-      }, [loading, appending, activeCat, query, videos.length, currentTab]);
+      }, [loading, appending, activeCat, query, currentTab]);
 
       const handleHomeRefresh = () => {
         setCurrentTab("home");
@@ -234,7 +249,6 @@
         fetchVideos("all");
       };
 
-      // FIX: Changed scrollIntoView to window.scrollTo for instant & reliable redirection
       const handleVideoClick = (v) => {
         setSelected(v);
         addToHistory(v);
