@@ -338,6 +338,7 @@
     }
     
     @keyframes spin { to { transform: rotate(360deg); } }
+    
     /* Shorts UI */
     .shorts-container {
       height: calc(100vh - 60px);
@@ -579,7 +580,6 @@
     const SHORTS_SEEDS = ["#shorts viral india", "#shorts hindi comedy", "#shorts trending song", "#shorts dance india", "#shorts facts hindi"];
 
     function getVid(v) { return typeof v.id === "string" ? v.id : (v.id?.videoId || ""); }
-    
     function App() {
       const [videos, setVideos] = useState([]);
       const [shortsVids, setShortsVids] = useState([]);
@@ -596,16 +596,56 @@
       const [loadingShorts, setLoadingShorts] = useState(false);
       const [shortIndex, setShortIndex] = useState(0);
       
+      // Naye States: Related Videos (80 videos) ke liye
+      const [relatedVideos, setRelatedVideos] = useState([]);
+      const [loadingRelated, setLoadingRelated] = useState(false);
+      
       useEffect(() => {
         fetchVideos("all");
         setHistory(JSON.parse(localStorage.getItem("watch_history")) || []);
+
+        // Jab user Fullscreen se bahar aaye, toh screen wapas auto (portrait) ho jaye
+        const handleFsChange = () => {
+          if (!document.fullscreenElement && window.screen && window.screen.orientation && window.screen.orientation.unlock) {
+            window.screen.orientation.unlock().catch(e => console.log(e));
+          }
+        };
+        document.addEventListener("fullscreenchange", handleFsChange);
+        document.addEventListener("webkitfullscreenchange", handleFsChange);
+        return () => {
+          document.removeEventListener("fullscreenchange", handleFsChange);
+          document.removeEventListener("webkitfullscreenchange", handleFsChange);
+        };
       }, []);
+
+      // Jab bhi koi video play ho, uske regarding 80 videos fetch karein
+      useEffect(() => {
+        if (selected) {
+          const fetchRelated = async () => {
+            setLoadingRelated(true);
+            try {
+              // Video ke title ka pehla hissa nikal kar search karo
+              const q = encodeURIComponent(selected.title.split("|")[0].substring(0, 40));
+              const res = await fetch(`${BACKEND_URL}/api/search?q=${q}&limit=80`); // limit=80 yahan lagaya hai
+              const data = await res.json();
+              setRelatedVideos(data?.videos || []);
+            } catch (err) {
+              console.error("Related video fetch error:", err);
+            }
+            setLoadingRelated(false);
+          };
+          fetchRelated();
+        } else {
+          setRelatedVideos([]); // Close hone par saaf kar do
+        }
+      }, [selected]);
 
       const fetchVideos = async (catId) => {
         try {
           setLoading(true);
           setError("");
           const seed = RANDOM_SEEDS[Math.floor(Math.random() * RANDOM_SEEDS.length)];
+          // Main Page ki default limit=100 hi hai
           const url = catId === "all" 
             ? `${BACKEND_URL}/api/search?q=${encodeURIComponent(seed)}&limit=100`
             : `${BACKEND_URL}/api/category?id=${catId}&limit=100`;
@@ -676,10 +716,25 @@
         if (idx >= shortsVids.length - 5) { fetchShortsVideos(); }
       };
 
-      const goFullscreen = () => {
+      // Naya Fullscreen function with Rotation
+      const goFullscreen = async () => {
         const iframe = document.getElementById("yt-iframe");
-        if (iframe && iframe.requestFullscreen) {
-          iframe.requestFullscreen().catch(err => console.log("Fullscreen denied:", err));
+        if (iframe) {
+          try {
+            // Screen Full karein
+            if (iframe.requestFullscreen) {
+              await iframe.requestFullscreen();
+            } else if (iframe.webkitRequestFullscreen) {
+              await iframe.webkitRequestFullscreen(); // Safari
+            }
+            
+            // Tap karte hi Landscape mein rotate karein
+            if (window.screen && window.screen.orientation && window.screen.orientation.lock) {
+              await window.screen.orientation.lock("landscape");
+            }
+          } catch (err) {
+            console.log("Fullscreen / Rotate error:", err);
+          }
         }
       };
 
@@ -733,7 +788,7 @@
               {loading && (
                 <div className="loading-state">
                   <div className="loading-spinner"></div>
-                  Loading premium content...
+                  Loading 100 premium videos...
                 </div>
               )}
               
@@ -753,8 +808,6 @@
                 </div>
               )}
               
-              {appending && <div className="loading-state"><div className="loading-spinner"></div>Loading more...</div>}
-              
               {!loading && videos.length === 0 && !error && <div className="empty-state">🎬 Kuch nahi mila. Alag search karo!</div>}
             </div>
           )}
@@ -763,8 +816,6 @@
             <div className="shorts-container" onScroll={handleShortsScroll}>
               {shortsVids.map((v, i) => (
                 <div key={i} className="short-item">
-                  
-                  {/* Performance Fix: Sirf aas-paas wale shorts iframe load honge */}
                   {Math.abs(i - shortIndex) <= 1 ? (
                     <iframe 
                       id={i === shortIndex ? "short-iframe" : undefined} 
@@ -801,24 +852,31 @@
                 <h2 className="player-title">{selected.title}</h2>
                 <p className="player-channel">{selected.channelTitle}</p>
               </div>
-              <button className="fullscreen-btn" onClick={goFullscreen}>🎬 Fullscreen</button>
+              <button className="fullscreen-btn" onClick={goFullscreen}>🎬 Fullscreen (Auto Rotate)</button>
               
-              {/* Naya Code: Niche aur videos dikhane ke liye */}
+              {/* Naya Code: 80 Related Videos dikhane ke liye */}
               <div style={{marginTop: '30px', paddingBottom: '40px'}}>
-                <h3 style={{color: '#fff', fontSize: '18px', marginBottom: '15px'}}>Up Next / Recommendations</h3>
-                <div className="grid" style={{padding: '0'}}>
-                  {videos.filter(v => getVid(v) !== getVid(selected)).map(v => (
-                    <div key={getVid(v)} className="card smooth" onClick={() => handleVideoClick(v)}>
-                      <div className="thumb-wrap">
-                        <img src={v.thumbnail?.url || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 180'%3E%3Crect fill='%23333' width='320' height='180'/%3E%3C/svg%3E"} alt={v.title} />
+                <h3 style={{color: '#fff', fontSize: '18px', marginBottom: '15px'}}>Up Next / Related Videos</h3>
+                
+                {loadingRelated ? (
+                  <div className="loading-state">
+                    <div className="loading-spinner"></div> Searching 80 related videos...
+                  </div>
+                ) : (
+                  <div className="grid" style={{padding: '0'}}>
+                    {relatedVideos.filter(v => getVid(v) !== getVid(selected)).map(v => (
+                      <div key={getVid(v)} className="card smooth" onClick={() => handleVideoClick(v)}>
+                        <div className="thumb-wrap">
+                          <img src={v.thumbnail?.url || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 180'%3E%3Crect fill='%23333' width='320' height='180'/%3E%3C/svg%3E"} alt={v.title} />
+                        </div>
+                        <div className="card-info">
+                          <div className="vid-title">{v.title}</div>
+                          <div className="vid-channel">{v.channelTitle}</div>
+                        </div>
                       </div>
-                      <div className="card-info">
-                        <div className="vid-title">{v.title}</div>
-                        <div className="vid-channel">{v.channelTitle}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}
