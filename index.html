@@ -9,19 +9,18 @@
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#ffffff" />
   
-  <!-- Speed up YouTube Iframe and Image loading -->
   <link rel="preconnect" href="https://www.youtube-nocookie.com" crossorigin>
   <link rel="preconnect" href="https://i.ytimg.com" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
-    body, html { background: #f5f5f7; color: #1d1d1f; -webkit-tap-highlight-color: transparent; width: 100%; height: 100%; overflow-x: hidden; }
+    body, html { background: #f5f5f7; color: #1d1d1f; -webkit-tap-highlight-color: transparent; width: 100%; height: 100%; overflow-x: hidden; scroll-behavior: smooth; }
     ::-webkit-scrollbar { width: 0px; display: none; }
 
     /* Header */
@@ -51,7 +50,7 @@
     }
     .search-box.open .search-input { width: 100%; opacity: 1; }
     
-    .lens-btn { width: 42px; height: 42px; background: transparent; border: none; color: #333; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .lens-btn { width: 42px; height: 42px; background: transparent; border: none; color: #333; font-size: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
     .suggest-box { position: absolute; top: 50px; right: 0; width: 100%; max-width: 300px; background: #fff; border: 1px solid #e5e5ea; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 200; overflow: hidden; }
     .suggest-item { padding: 12px 16px; cursor: pointer; color: #111; font-size: 14px; border-bottom: 1px solid #f2f2f7; display: flex; align-items: center; gap: 10px; font-weight: 500; }
@@ -71,6 +70,8 @@
     .card-info { padding: 14px; }
     .vid-title { color: #111; font-size: 14px; font-weight: 600; line-height: 1.4; margin-bottom: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .vid-channel { color: #666; font-size: 12px; font-weight: 500; margin-bottom: 4px; }
+    
+    #player-container { scroll-margin-top: 70px; }
 
     /* Bottom Navigation */
     .bottom-nav {
@@ -100,16 +101,11 @@
 </head>
 <body>
   <div id="root"></div>
+
   <script type="text/babel">
     const { useState, useEffect, useRef } = React;
     
     let BACKEND_URL = "https://yt-free.onrender.com";
-    const checkBackend = async () => {
-      try {
-        const res = await fetch("http://localhost:3001/api/health", { signal: AbortSignal.timeout(2000) });
-        if (res.ok) { BACKEND_URL = "http://localhost:3001"; return; }
-      } catch (e) {}
-    };
 
     const CATS = [
       { id: "all", icon: "🔥", label: "For You" },
@@ -122,7 +118,13 @@
     ];
 
     const POPULAR_TERMS = ["Song", "Movie", "Comedy", "News Live", "Cricket Highlights", "Bhojpuri Song", "Hindi Dubbed", "Gaming", "Tech Review", "Vlog", "Shorts", "Trending India"];
-    const RANDOM_SEEDS = ["latest hindi songs", "trending india video", "new bollywood movie", "indian comedy", "tech reviews hindi", "indian vlogs", "cricket india", "indian street food"];
+    
+    const RANDOM_SEEDS = [
+      "latest hindi songs", "trending india video", "new bollywood movie", "indian comedy", "tech reviews hindi", 
+      "indian vlogs", "cricket highlights india", "indian street food", "bhojpuri hit songs", "punjabi latest songs", 
+      "sourav joshi vlogs", "carryminati", "bgmi live india", "free fire india", "wwe hindi dubbed", 
+      "tarak mehta ka ooltah chashmah", "kapil sharma show", "round2hell new video", "news live india", "standup comedy hindi"
+    ];
     const SHORTS_SEEDS = ["#shorts viral india", "#shorts hindi comedy", "#shorts trending song", "#shorts dance india", "#shorts facts hindi"];
 
     function getVid(v) { return typeof v.id === "string" ? v.id : (v.id?.videoId || ""); }
@@ -143,7 +145,19 @@
       const [shortIndex, setShortIndex] = useState(0);
       const [loadingShorts, setLoadingShorts] = useState(false);
 
-      const playerRef = useRef(null);
+      const [history, setHistory] = useState(() => {
+        const saved = localStorage.getItem("yt_history");
+        return saved ? JSON.parse(saved) : [];
+      });
+
+      function addToHistory(video) {
+        setHistory(prev => {
+          const filtered = prev.filter(v => getVid(v) !== getVid(video));
+          const newHistory = [video, ...filtered].slice(0, 30);
+          localStorage.setItem("yt_history", JSON.stringify(newHistory));
+          return newHistory;
+        });
+      }
 
       function handleInputChange(val) {
         setQuery(val);
@@ -175,12 +189,13 @@
                let catLabel = CATS.find(c => c.id === cat).label;
                url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(catLabel + " India")}&maxResults=24`;
             } else url = `${BACKEND_URL}/api/trending?categoryId=${cat}&maxResults=24`;
-          } else url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(randomSeed)}&maxResults=24`;
+          } else {
+             url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(randomSeed)}&maxResults=24`;
+          }
           
           const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           const data = await res.json();
-          
           if (data.error) throw new Error(data.error.message);
           
           if (data.items && data.items.length > 0) {
@@ -192,9 +207,7 @@
         setLoading(false); setAppending(false);
       }
 
-      useEffect(() => { 
-        checkBackend().then(() => fetchVideos("all"));
-      }, []);
+      useEffect(() => { fetchVideos("all"); }, []);
 
       useEffect(() => {
         const handleScroll = () => {
@@ -215,14 +228,18 @@
         setQuery("");
         setSelected(null);
         window.scrollTo({ top: 0, behavior: 'smooth' });
-        fetchVideos("all"); 
+        fetchVideos("all");
       };
 
       const handleVideoClick = (v) => {
         setSelected(v);
+        addToHistory(v);
         setTimeout(() => {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }, 50);
+          const playerEl = document.getElementById('player-container');
+          if(playerEl) {
+            playerEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 150);
       };
 
       function goFullscreen() {
@@ -244,7 +261,6 @@
           const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           const data = await res.json();
-          
           if (data.items && data.items.length > 0) {
              const newVids = data.items.filter(v => getVid(v));
              if (isAppend) setShortsVids(prev => [...prev, ...newVids.filter(nv => !prev.some(pv => getVid(pv) === getVid(nv)))]);
@@ -267,6 +283,41 @@
         }
       }
 
+      useEffect(() => {
+        let player;
+        const initPlayer = () => {
+          if (!window.YT || !window.YT.Player) return;
+          const iframe = document.getElementById("short-iframe");
+          if (iframe) {
+            player = new window.YT.Player("short-iframe", {
+              events: {
+                'onStateChange': (event) => {
+                  if (event.data === window.YT.PlayerState.ENDED) {
+                    const container = document.querySelector('.shorts-container');
+                    if (container) {
+                      const nextScroll = container.scrollTop + container.clientHeight;
+                      container.scrollTo({ top: nextScroll, behavior: 'smooth' });
+                    }
+                  }
+                }
+              }
+            });
+          }
+        };
+
+        if (currentTab === "shorts") {
+          if (!window.YT) {
+            const tag = document.createElement("script");
+            tag.src = "https://www.youtube.com/iframe_api";
+            const firstScriptTag = document.getElementsByTagName("script")[0];
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+            window.onYouTubeIframeAPIReady = initPlayer;
+          } else {
+            setTimeout(initPlayer, 500); 
+          }
+        }
+        return () => { if (player && player.destroy) player.destroy(); };
+      }, [currentTab, shortIndex]);
       return (
         <div>
           {currentTab !== "shorts" && (
@@ -305,7 +356,7 @@
             {currentTab === "home" && (
               <div>
                 {selected && (
-                  <div style={{maxWidth:900, margin:"0 auto", padding:"16px"}} ref={playerRef}>
+                  <div id="player-container" style={{maxWidth:900, margin:"0 auto", padding:"16px"}}>
                     <div style={{position:"relative", paddingBottom:"56.25%", borderRadius:"16px", overflow:"hidden", background:"#000", boxShadow:"0 4px 20px rgba(0,0,0,0.1)"}}>
                       <iframe id="yt-iframe" src={`https://www.youtube-nocookie.com/embed/${getVid(selected)}?autoplay=1&rel=0`}
                         style={{position:"absolute", inset:0, width:"100%", height:"100%", border:"none"}} 
@@ -374,7 +425,7 @@
                   return (
                     <div key={vidId + i} className="short-item">
                       {shortIndex === i ? (
-                        <iframe src={`https://www.youtube-nocookie.com/embed/${vidId}?autoplay=1&loop=1&playlist=${vidId}&controls=0&modestbranding=1&rel=0`}
+                        <iframe id="short-iframe" src={`https://www.youtube-nocookie.com/embed/${vidId}?autoplay=1&enablejsapi=1&controls=0&modestbranding=1&rel=0`}
                           style={{position:"absolute", inset:0, width:"100%", height:"100%", border:"none", pointerEvents:"auto"}}
                           allow="autoplay; encrypted-media; fullscreen" allowFullScreen />
                       ) : (
@@ -392,13 +443,32 @@
             )}
 
             {currentTab === "profile" && (
-              <div style={{padding:"40px 20px", textAlign:"center"}}>
-                <div style={{fontSize:"60px", marginBottom:"10px"}}>👤</div>
-                <h2 style={{color:"#111", fontSize:"20px", fontWeight:"700", marginBottom:"10px"}}>My Library</h2>
-                <p style={{color:"#666", fontSize:"14px", lineHeight:"1.6", background:"#fff", padding:"16px", borderRadius:"12px", border:"1px solid #eaeaea"}}>
-                  Bhai, Google Login lagane se channel ban ho sakta hai kyunki hum Ads block kar rahe hain. 🚫<br/><br/>
-                  Isliye jald hi yahan <b>"Local Watch History"</b> aur <b>"Liked Videos"</b> ka feature aayega jo direct aapke phone storage mein safe rahega! 🔒
-                </p>
+              <div style={{padding:"20px", maxWidth:"1200px", margin:"0 auto"}}>
+                <div style={{textAlign:"center", marginBottom:"20px"}}>
+                  <div style={{fontSize:"50px", marginBottom:"10px"}}>👤</div>
+                  <h2 style={{color:"#111", fontSize:"22px", fontWeight:"700"}}>Library & History</h2>
+                </div>
+                
+                <h3 style={{fontSize:"16px", fontWeight:700, margin:"10px 0", color:"#111", paddingLeft:"8px", borderLeft:"4px solid #ff0055"}}>🕒 Recently Watched</h3>
+                
+                {history.length === 0 ? (
+                  <p style={{color:"#666", textAlign:"center", padding:"40px", background:"#fff", borderRadius:"12px", border:"1px solid #eaeaea"}}>Abhi tak koi video nahi dekhi hai 😅</p>
+                ) : (
+                  <div className="grid" style={{padding:"10px 0"}}>
+                    {history.map((v, index) => {
+                      const s = v.snippet || {};
+                      return (
+                        <div key={"hist" + getVid(v) + index} className="card" onClick={() => { setCurrentTab("home"); handleVideoClick(v); }}>
+                          <div className="thumb-wrap"><img src={s.thumbnails?.medium?.url || s.thumbnails?.default?.url || ""} loading="lazy" /></div>
+                          <div className="card-info">
+                            <div className="vid-title">{s.title}</div>
+                            <div className="vid-channel">{s.channelTitle}</div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
             
