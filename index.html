@@ -3,278 +3,403 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Tech Jugad 📺</title>
-  <meta name="description" content="Hacker-style YouTube client without ads" />
-  <link rel="icon" href="Tech_Jugad_150x150.png" />
+  <title>Jugadu Tube 📺</title>
+  <meta name="description" content="Clean YouTube without ads" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23ffffff' rx='50' width='100' height='100'/><text y='75' font-size='70' font-weight='bold' fill='%23111' text-anchor='middle' x='54'>▶</text></svg>" />
   <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#ffffff" />
+  
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
   <style>
-    :root { --bg-main: #f5f5f7; --bg-header: rgba(255, 255, 255, 0.95); --bg-card: #ffffff; --bg-hover: #f2f2f7; --text-main: #1d1d1f; --text-muted: #666666; --border: #e5e5ea; --accent: #00a8ff; }
-    [data-theme="dark"] { --bg-main: #050505; --bg-header: rgba(5, 5, 5, 0.95); --bg-card: #111111; --bg-hover: #1f1f1f; --text-main: #ffffff; --text-muted: #aaaaaa; --border: #222222; --accent: #00a8ff; }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
-    body, html { background: var(--bg-main); color: var(--text-main); -webkit-tap-highlight-color: transparent; overflow-x: hidden; scroll-behavior: smooth; min-height: 100vh; width: 100%; }
-    ::-webkit-scrollbar { width: 0px; display: none; } 
-    .glass-header { background: var(--bg-header); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    body, html { background: #f5f5f7; color: #1d1d1f; -webkit-tap-highlight-color: transparent; width: 100%; height: 100%; overflow-x: hidden; }
+    ::-webkit-scrollbar { width: 0px; display: none; } /* Clean look */
+
+    /* Header */
+    .glass-header {
+      background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid #e5e5ea; position: sticky; top: 0; z-index: 100;
+      padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    
     .brand-btn { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-    .logo-box { width: 36px; height: 36px; border-radius: 50%; overflow: hidden; box-shadow: 0 0 8px rgba(0, 168, 255, 0.6); }
-    .logo-box img { width: 100%; height: 100%; object-fit: cover; }
-    .brand-text { font-weight: 700; font-size: 16px; color: var(--text-main); }
-    .search-wrap { display: flex; justify-content: flex-end; align-items: center; flex: 1; position: relative; gap: 6px; }
-    .search-box { display: flex; align-items: center; background: transparent; border-radius: 20px; transition: 0.3s; overflow: hidden; height: 38px; width: 38px; }
-    .search-box.open { width: 100%; max-width: 250px; background: var(--bg-card); border: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-    .search-input { flex: 1; border: none; background: transparent; color: var(--text-main); padding: 0 0 0 12px; font-size: 13px; outline: none; width: 0; opacity: 0; transition: 0.3s; }
+    .logo-box {
+      width: 36px; height: 36px; border-radius: 10px; background: #1d1d1f;
+      display: flex; align-items: center; justify-content: center; font-size: 16px; color: #fff; font-weight: 800; flex-shrink: 0;
+    }
+    .brand-text { font-weight: 700; font-size: 18px; color: #1d1d1f; }
+
+    /* Search Bar */
+    .search-wrap { display: flex; justify-content: flex-end; align-items: center; flex: 1; position: relative; gap: 8px; }
+    .search-box {
+      display: flex; align-items: center; background: transparent; border-radius: 25px; transition: all 0.3s;
+      overflow: hidden; height: 42px; width: 42px; 
+    }
+    .search-box.open { width: 100%; max-width: 250px; background: #fff; border: 1px solid #d1d1d6; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+    .search-input {
+      flex: 1; border: none; background: transparent; color: #111; padding: 0 0 0 16px; font-size: 14px; outline: none; font-weight: 500;
+      width: 0; opacity: 0; transition: opacity 0.3s;
+    }
     .search-box.open .search-input { width: 100%; opacity: 1; }
-    .icon-btn { width: 38px; height: 38px; background: transparent; border: none; color: var(--text-main); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
-    .suggest-box { position: absolute; top: 46px; right: 0; width: 100%; max-width: 300px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); z-index: 200; overflow: hidden; }
-    .suggest-item { padding: 10px 14px; cursor: pointer; color: var(--text-main); font-size: 13px; border-bottom: 1px solid var(--bg-hover); display: flex; align-items: center; gap: 8px; font-weight: 500; }
-    .cat-container { display: flex; gap: 8px; overflow-x: auto; padding: 8px 12px; background: var(--bg-main); border-bottom: 1px solid var(--border); }
+    
+    .lens-btn { width: 42px; height: 42px; background: transparent; border: none; color: #333; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+    .suggest-box { position: absolute; top: 50px; right: 0; width: 100%; max-width: 300px; background: #fff; border: 1px solid #e5e5ea; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 200; overflow: hidden; }
+    .suggest-item { padding: 12px 16px; cursor: pointer; color: #111; font-size: 14px; border-bottom: 1px solid #f2f2f7; display: flex; align-items: center; gap: 10px; font-weight: 500; }
+
+    /* Categories */
+    .cat-container { display: flex; gap: 10px; overflow-x: auto; padding: 12px 16px; background: #fff; }
     .cat-container::-webkit-scrollbar { display: none; }
-    .cat-btn { background: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border); border-radius: 16px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: 0.2s; }
-    .cat-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-    .main-content { padding-bottom: 70px; min-height: 100vh; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; padding: 12px; max-width: 1200px; margin: 0 auto; }
-    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; cursor: pointer; transition: 0.2s; }
-    .thumb-wrap { position: relative; padding-bottom: 56.25%; background: var(--bg-hover); overflow: hidden; }
+    .cat-btn { background: #f2f2f7; color: #666; border: none; border-radius: 20px; padding: 8px 18px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: 0.2s; display: flex; gap: 6px; align-items: center; }
+    .cat-btn.active { background: #1d1d1f; color: #fff; }
+
+    /* Main Content Padding for Bottom Nav */
+    .main-content { padding-bottom: 70px; }
+
+    /* Video Grid */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; padding: 16px; max-width: 1200px; margin: 0 auto; }
+    .card { background: #fff; border: 1px solid #eaeaea; border-radius: 16px; overflow: hidden; cursor: pointer; transition: 0.3s; }
+    .thumb-wrap { position: relative; padding-bottom: 56.25%; background: #f2f2f7; overflow: hidden; }
     .thumb-wrap img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-    .vid-duration { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.8); color: #fff; font-size: 10px; font-weight: 600; padding: 3px 6px; border-radius: 6px; letter-spacing: 0.5px; backdrop-filter: blur(4px); }
-    .card-info { padding: 10px; }
-    .vid-title { color: var(--text-main); font-size: 13px; font-weight: 600; line-height: 1.35; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .vid-channel { color: var(--text-muted); font-size: 11px; font-weight: 500; display: flex; align-items: center; gap: 4px; }
-    .vid-stats { color: var(--text-muted); font-size: 11px; font-weight: 500; margin-top: 3px; }
-    .ad-banner { background: var(--bg-card); border: 1px dashed var(--text-muted); padding: 20px; text-align: center; color: var(--text-muted); font-size: 12px; font-weight: 600; margin: 10px 12px; border-radius: 8px; min-height: 80px; display: flex; align-items: center; justify-content: center; }
-    .action-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
-    .action-btn { background: var(--bg-hover); border: 1px solid var(--border); padding: 6px 14px; border-radius: 20px; font-size: 12px; color: var(--text-main); font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
-    .action-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-    .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 56px; background: var(--bg-header); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); }
-    .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); font-size: 10px; font-weight: 600; cursor: pointer; width: 33%; height: 100%; gap: 2px; transition: 0.2s; }
-    .nav-item.active { color: var(--accent); }
-    .nav-icon { font-size: 20px; transition: transform 0.2s; }
-    .nav-item.active .nav-icon { transform: scale(1.15); color: var(--accent); }
-    .shorts-container { height: calc(100vh - 56px); height: calc(100dvh - 56px); overflow-y: scroll; scroll-snap-type: y mandatory; scroll-behavior: smooth; background: #000; position: relative; }
+    .card-info { padding: 14px; }
+    .vid-title { color: #111; font-size: 14px; font-weight: 600; line-height: 1.4; margin-bottom: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .vid-channel { color: #666; font-size: 12px; font-weight: 500; margin-bottom: 4px; }
+
+    /* ========== BOTTOM NAVIGATION ========== */
+    .bottom-nav {
+      position: fixed; bottom: 0; width: 100%; height: 60px;
+      background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+      border-top: 1px solid #e5e5ea; display: flex; justify-content: space-around; align-items: center;
+      z-index: 1000; padding-bottom: env(safe-area-inset-bottom);
+    }
+    .nav-item {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      color: #888; font-size: 10px; font-weight: 600; cursor: pointer; width: 33%; height: 100%; gap: 4px;
+    }
+    .nav-item.active { color: #1d1d1f; }
+    .nav-icon { font-size: 22px; transition: transform 0.2s; }
+    .nav-item.active .nav-icon { transform: scale(1.15); color: #ff0055; }
+
+    /* ========== SHORTS TAB UI ========== */
+    .shorts-container {
+      height: calc(100vh - 60px); /* Height minus bottom nav */
+      overflow-y: scroll; scroll-snap-type: y mandatory; scroll-behavior: smooth; background: #000;
+    }
     .short-item { height: 100%; width: 100%; scroll-snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; }
-    .short-info { position: absolute; bottom: 15px; left: 12px; right: 12px; z-index: 10; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,0.8); pointer-events: none; }
-    .short-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .short-channel { font-size: 12px; font-weight: 500; display: inline-block; background: rgba(0,0,0,0.4); padding: 4px 8px; border-radius: 12px; backdrop-filter: blur(4px); }
-    .load-more-btn { padding: 10px 20px; background: var(--accent); color: #fff; border: none; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; margin-top: 10px; }
-    .blank-screen-fix { font-size: 14px; color: var(--text-muted); font-weight: 500; text-align: center; padding: 40px; border-radius: 12px; background: var(--bg-card); margin: 20px; border: 1px dashed var(--border); }
+    .short-info { position: absolute; bottom: 20px; left: 16px; right: 16px; z-index: 10; color: #fff; text-shadow: 0 2px 6px rgba(0,0,0,0.9); pointer-events: none; }
+    .short-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .short-channel { font-size: 13px; font-weight: 500; display: inline-block; background: rgba(0,0,0,0.5); padding: 4px 10px; border-radius: 20px; backdrop-filter: blur(4px); }
+
+    /* Skeletons */
+    @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+    .skeleton { background: #fff; border: 1px solid #eaeaea; border-radius: 16px; overflow: hidden; }
+    .skel-img { padding-bottom: 56.25%; background: #e5e5ea; animation: pulse 1.5s infinite; }
+    .skel-text { height: 14px; background: #f2f2f7; margin: 14px; border-radius: 4px; animation: pulse 1.5s infinite; }
   </style>
 </head>
 <body>
   <div id="root"></div>
+
   <script type="text/babel">
     const { useState, useEffect, useRef } = React;
     const BACKEND_URL = "https://yt-free.onrender.com";
-    const CATS = [{ id: "all", label: "For You" }, { id: "10", label: "Music" }, { id: "20", label: "Gaming" }, { id: "28", label: "Tech" }];
-    const POPULAR_TERMS = ["New Song Hindi", "Latest Bollywood Movie", "Hindi Dubbed Action", "Cricket Highlights India", "Bhojpuri Video", "New Vlogs Hindi"];
-    const SHORTS_SEEDS = ["#shorts viral india", "#shorts hindi comedy", "#shorts trending song", "#shorts indian vlogs"];
-    const SCROLL_TRICKS = ["2024", "HD", "viral", "latest", "update"];
+
+    const CATS = [
+      { id: "all", icon: "🔥", label: "For You" },
+      { id: "10",  icon: "🎵", label: "Music" },
+      { id: "20",  icon: "🎮", label: "Gaming" },
+      { id: "24",  icon: "🎭", label: "Entertainment" },
+      { id: "17",  icon: "⚽", label: "Sports" },
+      { id: "28",  icon: "💻", label: "Tech" },
+      { id: "22",  icon: "👤", label: "Vlogs" }
+    ];
+
+    const POPULAR_TERMS = ["Song", "Movie", "Comedy", "News Live", "Cricket Highlights", "Bhojpuri Song", "Hindi Dubbed", "Gaming", "Tech Review", "Vlog", "Shorts", "Trending India"];
+    const RANDOM_SEEDS = ["latest hindi songs", "trending india video", "new bollywood movie", "indian comedy", "tech reviews hindi", "indian vlogs", "cricket india", "indian street food"];
+    const SHORTS_SEEDS = ["#shorts viral india", "#shorts hindi comedy", "#shorts trending song", "#shorts dance india", "#shorts facts hindi"];
 
     function getVid(v) { return typeof v.id === "string" ? v.id : (v.id?.videoId || ""); }
-    function fmt(n) { if (!n) return ""; const x = parseInt(n); if (x >= 1e9) return (x/1e9).toFixed(1)+"B"; if (x >= 1e6) return (x/1e6).toFixed(1)+"M"; if (x >= 1e3) return (x/1e3).toFixed(1)+"K"; return String(x); }
-    function ago(d) { if (!d) return ""; const days = Math.floor((Date.now() - new Date(d)) / 86400000); if (!days) return "New"; if (days < 7) return days + "d ago"; if (days < 30) return Math.floor(days/7) + "w ago"; return Math.floor(days/30) + "mo ago"; }
     function App() {
-      const [theme, setTheme] = useState(() => localStorage.getItem("yt_theme") || "dark");
-      useEffect(() => { document.documentElement.setAttribute("data-theme", theme); localStorage.setItem("yt_theme", theme); }, [theme]);
-      
-      const [currentTab, setCurrentTab] = useState("home");
+      // Main States
+      const [currentTab, setCurrentTab] = useState("home"); // 'home', 'shorts', 'profile'
       const [videos, setVideos] = useState([]);
-      const [shortsVids, setShortsVids] = useState([]);
-      const [savedVids, setSavedVids] = useState(() => JSON.parse(localStorage.getItem("yt_saved_vids") || "[]"));
-      const [historyVids, setHistoryVids] = useState(() => JSON.parse(localStorage.getItem("yt_watch_history") || "[]"));
-      const [searchHistory, setSearchHistory] = useState(() => JSON.parse(localStorage.getItem("yt_search_history") || "[]"));
-
       const [selected, setSelected] = useState(null);
       const [loading, setLoading] = useState(false);
-      const [error, setError] = useState(false);
       const [appending, setAppending] = useState(false);
       const [query, setQuery] = useState("");
       const [activeCat, setActiveCat] = useState("all");
       const [searchOpen, setSearchOpen] = useState(false);
       const [suggestions, setSuggestions] = useState([]);
+
+      // Shorts States
+      const [shortsVids, setShortsVids] = useState([]);
       const [shortIndex, setShortIndex] = useState(0);
       const [loadingShorts, setLoadingShorts] = useState(false);
 
-      async function fetchVideos(cat, isAppend = false, customQuery = null) {
-        if (isAppend) setAppending(true); else { setLoading(true); setVideos([]); setError(false); setSelected(null); }
-        try {
-          const defaultSeed = POPULAR_TERMS[Math.floor(Math.random() * POPULAR_TERMS.length)];
-          const fQuery = customQuery !== null ? customQuery : query;
-          const userSeed = searchHistory.length > 0 ? searchHistory[0] : "";
-          let trick = isAppend ? " " + SCROLL_TRICKS[Math.floor(Math.random() * SCROLL_TRICKS.length)] : "";
-          
-          let backendQuery = "";
-          if (fQuery) backendQuery = fQuery;
-          else if (cat && cat !== "all") backendQuery = CATS.find(c=>c.id===cat).label + " latest";
-          else backendQuery = (userSeed || defaultSeed);
-
-          if (!backendQuery.toLowerCase().includes("hindi") && !backendQuery.startsWith("#")) backendQuery += " Hindi";
-          backendQuery += trick + " -shorts";
-
-          const res = await fetch(`${BACKEND_URL}/api/search?q=${encodeURIComponent(backendQuery)}&maxResults=20`);
-          const data = await res.json();
-          if (!data.error && data.items && data.items.length > 0) {
-            const newVids = data.items.filter(v => getVid(v));
-            setVideos(prev => isAppend ? [...prev, ...newVids] : newVids.sort(() => Math.random() - 0.5));
-          } else { 
-            if (!isAppend) {
-                if (!fQuery && cat==="all" && data.error?.code === 403) {
-                  executeSearch(POPULAR_TERMS[Math.floor(Math.random()*POPULAR_TERMS.length)]);
-                } else { setError(true); }
-            }
-          }
-        } catch (e) { console.error(e); if (!isAppend) setError(true); } finally { setLoading(false); setAppending(false); }
-      }
-
-      useEffect(() => { if (videos.length === 0 && !loading && currentTab === "home") fetchVideos("all"); }, [currentTab]);
-
-      useEffect(() => {
-        const handleScroll = () => {
-          if (currentTab === "home" && !selected && (window.innerHeight + window.scrollY) >= document.body.offsetHeight - 900 && !loading && !appending && videos.length > 0) {
-            fetchVideos(activeCat, true);
-          }
-        };
-        window.addEventListener('scroll', handleScroll); return () => window.removeEventListener('scroll', handleScroll);
-      }, [loading, appending, activeCat, query, videos.length, currentTab, selected]);
-
-      function handleVideoClick(v) {
-        setSelected(v); window.scrollTo(0, 0);
-        const newHist = [v, ...historyVids.filter(vid => getVid(vid) !== getVid(v))].slice(0, 30);
-        setHistoryVids(newHist); localStorage.setItem("yt_watch_history", JSON.stringify(newHist));
+      // --- Main API Logic ---
+      function handleInputChange(val) {
+        setQuery(val);
+        if(val.trim().length > 0) {
+          const matched = POPULAR_TERMS.filter(t => t.toLowerCase().includes(val.toLowerCase()));
+          setSuggestions(matched);
+        } else setSuggestions([]);
       }
 
       function executeSearch(searchWord) {
-        setQuery(searchWord); setSuggestions([]); setSearchOpen(false); setActiveCat(""); setCurrentTab("home"); window.scrollTo(0, 0);
-        const newHist = [searchWord, ...searchHistory.filter(w => w !== searchWord)].slice(0, 8);
-        setSearchHistory(newHist); localStorage.setItem("yt_search_history", JSON.stringify(newHist));
+        setQuery(searchWord); setSuggestions([]); setSearchOpen(false);
+        setActiveCat(""); setSelected(null); setCurrentTab("home");
         fetchVideos(null, false, searchWord);
       }
 
+      async function fetchVideos(cat, isAppend = false, customQuery = null) {
+        if (isAppend) setAppending(true);
+        else { setLoading(true); setVideos([]); }
+        try {
+          let url = ""; let finalQuery = customQuery !== null ? customQuery : query;
+          let randomSeed = RANDOM_SEEDS[Math.floor(Math.random() * RANDOM_SEEDS.length)];
+
+          if (finalQuery) {
+            let backendQuery = finalQuery;
+            if (!backendQuery.toLowerCase().includes("india") && !backendQuery.toLowerCase().includes("hindi")) backendQuery += " India";
+            url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(backendQuery)}&maxResults=24`;
+          } else if (cat && cat !== "all") {
+            if (isAppend) {
+               let catLabel = CATS.find(c => c.id === cat).label;
+               url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(catLabel + " India")}&maxResults=24`;
+            } else url = `${BACKEND_URL}/api/trending?categoryId=${cat}&maxResults=24`;
+          } else url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(randomSeed)}&maxResults=24`;
+          
+          const res = await fetch(url); const data = await res.json();
+          if (!data.error && data.items) {
+            const newVids = data.items.filter(v => getVid(v)); 
+            if (isAppend) setVideos(prev => [...prev, ...newVids.filter(nv => !prev.some(pv => getVid(pv) === getVid(nv)))]);
+            else setVideos(newVids.sort(() => Math.random() - 0.5));
+          }
+        } catch (e) { console.error(e); }
+        setLoading(false); setAppending(false);
+      }
+
+      useEffect(() => { fetchVideos("all"); }, []);
+
+      useEffect(() => {
+        const handleScroll = () => {
+          if (currentTab === "home" && (window.innerHeight + window.scrollY) >= document.body.offsetHeight - 800 && !loading && !appending && videos.length > 0) {
+            fetchVideos(activeCat, true);
+          }
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+      }, [loading, appending, activeCat, query, videos.length, currentTab]);
+
+      function goFullscreen() {
+        const iframe = document.getElementById("yt-iframe");
+        if (iframe && iframe.requestFullscreen) {
+          iframe.requestFullscreen().then(() => {
+            if (window.screen && window.screen.orientation && window.screen.orientation.lock) {
+              window.screen.orientation.lock("landscape").catch(e => console.log(e));
+            }
+          }).catch(err => console.error(err));
+        }
+      }
+
+      // --- SHORTS LOGIC ---
       async function fetchShortsData(isAppend = false) {
         if (!isAppend) { setLoadingShorts(true); setShortsVids([]); setShortIndex(0); }
         try {
-          const seed = SHORTS_SEEDS[Math.floor(Math.random() * SHORTS_SEEDS.length)];
-          const res = await fetch(`${BACKEND_URL}/api/search?q=${encodeURIComponent(seed)}&maxResults=15`);
+          const randomSeed = SHORTS_SEEDS[Math.floor(Math.random() * SHORTS_SEEDS.length)];
+          const res = await fetch(`${BACKEND_URL}/api/search?q=${encodeURIComponent(randomSeed)}&maxResults=20`);
           const data = await res.json();
           if (!data.error && data.items) {
              const newVids = data.items.filter(v => getVid(v));
-             setShortsVids(prev => isAppend ? [...prev, ...newVids] : newVids.sort(() => Math.random() - 0.5));
+             if (isAppend) setShortsVids(prev => [...prev, ...newVids.filter(nv => !prev.some(pv => getVid(pv) === getVid(nv)))]);
+             else setShortsVids(newVids.sort(() => Math.random() - 0.5));
           }
-        } catch(e) {} finally { setLoadingShorts(false); }
+        } catch(e) { console.error(e); }
+        setLoadingShorts(false);
       }
 
-      useEffect(() => { if (currentTab === "shorts" && shortsVids.length === 0) fetchShortsData(); }, [currentTab]);
+      useEffect(() => {
+        if (currentTab === "shorts" && shortsVids.length === 0) {
+          fetchShortsData();
+        }
+      }, [currentTab]);
 
       function handleShortsScroll(e) {
-        const idx = Math.round(e.target.scrollTop / e.target.clientHeight);
-        if (idx !== shortIndex) { setShortIndex(idx); if (idx >= shortsVids.length - 3 && !loadingShorts) fetchShortsData(true); }
+        const container = e.target;
+        const index = Math.round(container.scrollTop / container.clientHeight);
+        if (index !== shortIndex) {
+          setShortIndex(index);
+          if (index >= shortsVids.length - 3 && !loadingShorts) fetchShortsData(true);
+        }
       }
-
-      const renderGrid = (vidList) => (
-        <div className="grid">
-          {vidList.map((v, i) => {
-            const s = v.snippet || {}; const st = v.statistics || {}; const vidId = getVid(v);
-            return (
-              <div key={vidId + i} className="card" onClick={() => handleVideoClick(v)}>
-                <div className="thumb-wrap"><img src={s.thumbnails?.medium?.url} loading="lazy" /><div className="vid-duration">▶ HD</div></div>
-                <div className="card-info"><div className="vid-title">{s.title}</div><div className="vid-channel">👤 {s.channelTitle}</div>
-                  <div className="vid-stats">{st.viewCount ? fmt(st.viewCount) + " views • " : ""} {ago(s.publishedAt)}</div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      );
 
       return (
         <div>
+          {/* Header (Only show on Home & Profile tabs) */}
           {currentTab !== "shorts" && (
             <div className="glass-header">
-              <div className="brand-btn" onClick={() => { setCurrentTab("home"); window.scrollTo(0,0); fetchVideos("all"); setQuery(""); setActiveCat("all"); }}>
-                <div className="logo-box"><img src="Tech_Jugad_150x150.png" alt="Logo" /></div><span className="brand-text">Tech Jugad</span>
+              <div className="brand-btn" onClick={() => { setCurrentTab("home"); window.location.reload(); }}>
+                <div className="logo-box">▶</div>
+                <span className="brand-text">Jugadu Tube</span>
               </div>
+              
               <div className="search-wrap">
-                {!searchOpen && <button className="icon-btn" onClick={() => setTheme(t=>t==="light"?"dark":"light")}>{theme === "light" ? "🌙" : "☀️"}</button>}
                 <div className={`search-box ${searchOpen ? 'open' : ''}`}>
-                  <input className="search-input" value={query} onChange={e => { setQuery(e.target.value); setSuggestions(POPULAR_TERMS.filter(t=>t.toLowerCase().includes(e.target.value.toLowerCase()))); }} onKeyDown={e => e.key==="Enter" && executeSearch(query)} placeholder="Search..." />
-                  <button className="icon-btn" onClick={() => searchOpen && query.trim() ? executeSearch(query) : setSearchOpen(!searchOpen)}>🔍</button>
+                  <input className="search-input" value={query} onChange={e => handleInputChange(e.target.value)} 
+                    placeholder="Search movies, songs..." 
+                    onKeyDown={e => { if(e.key==="Enter" && query.trim()){ executeSearch(query); } }} 
+                    ref={input => searchOpen && input && input.focus()} />
+                  <button className="lens-btn" onClick={() => {
+                    if (searchOpen && query.trim()) { executeSearch(query); }
+                    else { setSearchOpen(!searchOpen); setSuggestions([]); }
+                  }}>🔍</button>
                 </div>
-                {searchOpen && suggestions.length > 0 && <div className="suggest-box">{suggestions.map((s, i) => <div key={i} className="suggest-item" onClick={() => executeSearch(s)}>🔍 {s}</div>)}</div>}
+                
+                {searchOpen && suggestions.length > 0 && (
+                  <div className="suggest-box">
+                    {suggestions.map((s, i) => (
+                      <div key={i} className="suggest-item" onClick={() => executeSearch(s)}>
+                        <span>🔍</span> {s}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}
 
+          {/* MAIN CONTENT AREA */}
           <div className="main-content">
+            
+            {/* 🏠 TAB 1: HOME */}
             {currentTab === "home" && (
               <div>
-                {selected ? (
-                  <div style={{maxWidth:800, margin:"0 auto", padding:12}}><button className="action-btn" onClick={() => setSelected(null)}>Back to Home</button>
-                    <div style={{position:"relative", paddingBottom:"56.25%", borderRadius:12, overflow:"hidden", background:"#000", marginTop:10}}><iframe src={`https://www.youtube-nocookie.com/embed/${getVid(selected)}?autoplay=1`} style={{position:"absolute", inset:0, width:"100%", height:"100%", border:0}} allowFullScreen /></div>
-                    <h2 style={{fontSize:15, marginTop:12}}>{selected.snippet?.title}</h2>
-                    <div className="vid-stats" style={{fontSize:12, color:"var(--text-muted)", fontWeight:"500", marginTop:5}}>{selected.statistics?.viewCount ? fmt(selected.statistics.viewCount) + " views • " : ""} {ago(selected.snippet?.publishedAt)}</div>
-                  </div>
-                ) : (
-                  <div>
-                    <div className="cat-container">{CATS.map(cat => <button key={cat.id} className={`cat-btn ${activeCat === cat.id ? 'active' : ''}`} onClick={() => { setActiveCat(cat.id); setQuery(""); fetchVideos(cat.id); }}>{cat.label}</button>)}</div>
-                    {loading ? <div className="blank-screen-fix">Searching YouTube Database... ⏳</div> : error ? (
-                        <div className="blank-screen-fix">
-                            Oops! YouTube Quota Limit. <br/> Try searching Hindi terms or wait 10 secs. <br/>
-                            <button className="load-more-btn" onClick={() => executeSearch(POPULAR_TERMS[Math.floor(Math.random()*POPULAR_TERMS.length)])} style={{background:"#444", fontSize:11, padding:"6px 12px"}}>TRY FALLBACK REFRESH 🔄</button>
-                        </div>
-                    ) : renderGrid(videos)}
-                    {appending && <div style={{textAlign:"center", color:"var(--text-muted)", padding:10, fontSize:12}}>Loading More...</div>}
-                    {videos.length > 0 && !selected && !loading && !appending && <div style={{textAlign:"center", padding:20}}><button className="load-more-btn" onClick={() => fetchVideos(activeCat, true)}>Load More ▼</button></div>}
+                {selected && (
+                  <div style={{maxWidth:900, margin:"0 auto", padding:"16px"}}>
+                    <div style={{position:"relative", paddingBottom:"56.25%", borderRadius:"16px", overflow:"hidden", background:"#000", boxShadow:"0 4px 20px rgba(0,0,0,0.1)"}}>
+                      <iframe id="yt-iframe" src={`https://www.youtube-nocookie.com/embed/${getVid(selected)}?autoplay=1&rel=0`}
+                        style={{position:"absolute", inset:0, width:"100%", height:"100%", border:"none"}} 
+                        allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen />
+                    </div>
+                    <h2 style={{fontSize:"17px", fontWeight:700, margin:"16px 0 10px", color:"#111"}}>{selected.snippet?.title}</h2>
+                    
+                    <div style={{display:"flex", alignItems:"center", gap:"10px", flexWrap:"wrap"}}>
+                      <div style={{background:"#f2f2f7", padding:"8px 14px", borderRadius:"20px", fontSize:"13px", color:"#444", fontWeight:"500"}}>
+                        👤 {selected.snippet?.channelTitle}
+                      </div>
+                      <button onClick={goFullscreen} style={{background:"#1d1d1f", color:"#fff", border:"none", padding:"8px 16px", borderRadius:"20px", fontSize:"13px", fontWeight:"600", cursor:"pointer", display:"flex", alignItems:"center", gap:"6px"}}>
+                        🔄 Rotate & Full Screen
+                      </button>
+                    </div>
                   </div>
                 )}
+
+                {!selected && (
+                  <div className="cat-container">
+                    {CATS.map(cat => (
+                      <button key={cat.id} className={`cat-btn ${activeCat === cat.id ? 'active' : ''}`}
+                        onClick={() => { setActiveCat(cat.id); setQuery(""); fetchVideos(cat.id); setSearchOpen(false); }}>
+                        {cat.icon} {cat.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {selected && <h3 style={{padding:"0 16px", marginTop:"10px", color:"#111", fontSize:"16px", fontWeight:700}}>🔥 Up Next / Recommended</h3>}
+
+                <div className="grid">
+                  {loading ? Array(12).fill(0).map((_, i) => (
+                    <div key={i} className="skeleton">
+                      <div className="skel-img"></div>
+                      <div className="skel-text"></div>
+                      <div className="skel-text short"></div>
+                    </div>
+                  )) : videos.filter(v => getVid(v) !== (selected ? getVid(selected) : "")).map((v, index) => {
+                    const s = v.snippet || {};
+                    return (
+                      <div key={getVid(v) + index} className="card" onClick={() => { setSelected(v); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
+                        <div className="thumb-wrap"><img src={s.thumbnails?.medium?.url || ""} loading="lazy" /></div>
+                        <div className="card-info">
+                          <div className="vid-title">{s.title}</div>
+                          <div className="vid-channel">{s.channelTitle}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                {appending && <div style={{textAlign:"center", padding:"20px", color:"#888"}}>Loading more... ⏳</div>}
+              </div>
+            )}
+
+            {/* 📱 TAB 2: SHORTS */}
+            {currentTab === "shorts" && (
+              <div className="shorts-container" onScroll={handleShortsScroll}>
+                {shortsVids.map((v, i) => {
+                  const vidId = getVid(v); const s = v.snippet || {};
+                  return (
+                    <div key={vidId + i} className="short-item">
+                      {shortIndex === i ? (
+                        <iframe src={`https://www.youtube-nocookie.com/embed/${vidId}?autoplay=1&loop=1&playlist=${vidId}&controls=0&modestbranding=1&rel=0`}
+                          style={{position:"absolute", inset:0, width:"100%", height:"100%", border:"none", pointerEvents:"auto"}}
+                          allow="autoplay; encrypted-media; fullscreen" allowFullScreen />
+                      ) : (
+                        <img src={s.thumbnails?.high?.url || s.thumbnails?.medium?.url} style={{position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity: 0.3}} />
+                      )}
+                      <div className="short-info">
+                        <div className="short-title">{s.title}</div>
+                        <div className="short-channel">👤 {s.channelTitle}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+                {loadingShorts && <div style={{color:"#fff", textAlign:"center", padding:"40px", fontSize:"14px"}}>Loading... ⏳</div>}
+              </div>
+            )}
+
+            {/* 👤 TAB 3: PROFILE / LIBRARY */}
+            {currentTab === "profile" && (
+              <div style={{padding:"40px 20px", textAlign:"center"}}>
+                <div style={{fontSize:"60px", marginBottom:"10px"}}>👤</div>
+                <h2 style={{color:"#111", fontSize:"20px", fontWeight:"700", marginBottom:"10px"}}>My Library</h2>
+                <p style={{color:"#666", fontSize:"14px", lineHeight:"1.6", background:"#fff", padding:"16px", borderRadius:"12px", border:"1px solid #eaeaea"}}>
+                  Bhai, Google Login lagane se channel ban ho sakta hai kyunki hum Ads block kar rahe hain. 🚫<br/><br/>
+                  Isliye jald hi yahan <b>"Local Watch History"</b> aur <b>"Liked Videos"</b> ka feature aayega jo direct aapke phone storage mein safe rahega! 🔒
+                </p>
               </div>
             )}
             
-            {currentTab === "shorts" && (
-              <div className="shorts-container" onScroll={handleShortsScroll}>
-                {shortsVids.map((v, i) => (
-                  <div key={i} className="short-item">
-                    {shortIndex === i ? (
-                      <>
-                        <div className="swipe-zone top"></div><div className="swipe-zone bottom"></div>
-                        <iframe src={`https://www.youtube-nocookie.com/embed/${getVid(v)}?autoplay=1&loop=1&playlist=${getVid(v)}&controls=0&modestbranding=1`} style={{position:"absolute", inset:0, width:"100%", height:"100%", border:0}} allow="autoplay; fullscreen" />
-                      </>
-                    ) : <img src={v.snippet?.thumbnails?.high?.url || v.snippet?.thumbnails?.medium?.url} style={{position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0.3}} />}
-                    <div className="short-info"><div className="short-title">{v.snippet?.title}</div>
-                      <div style={{background:"rgba(0,0,0,0.5)", padding:"4px 8px", borderRadius:10, display:"inline-block", fontSize:12, fontWeight:500}}>👤 {v.snippet?.channelTitle}</div>
-                    </div>
-                  </div>
-                ))}
-                {loadingShorts && <div style={{color:"#fff", textAlign:"center", padding:40}}>Loading... ⏳</div>}
-              </div>
-            )}
-
-            {currentTab === "profile" && (
-              <div style={{padding:16, maxWidth:1200, margin:"0 auto"}}><h2 style={{fontSize:18, display:"flex", gap:10, alignItems:"center"}}>👤 My Library</h2>
-                <h3 style={{marginTop:20, marginBottom:10, fontSize:15, color:"var(--text-main)"}}>🕒 Watch History</h3>
-                {historyVids.length === 0 ? <p style={{color:"var(--text-muted)", fontSize:12}}>No history.</p> : renderGrid(historyVids.slice(0, 4))}
-                <h3 style={{marginTop:20, marginBottom:10, fontSize:15, color:"var(--text-main)"}}>❤️ Liked & Saved</h3>
-                {savedVids.length === 0 ? <p style={{color:"var(--text-muted)", fontSize:12}}>No saved videos.</p> : renderGrid(savedVids)}
-              </div>
-            )}
           </div>
 
+          {/* ========== BOTTOM NAVIGATION BAR ========== */}
           <div className="bottom-nav">
-            <div className={`nav-item ${currentTab === "home" ? "active" : ""}`} onClick={() => { setCurrentTab("home"); setSelected(null); if(videos.length===0) fetchVideos("all"); }}>
-                <span className="nav-icon">🏠</span><span>Home</span>
+            <div className={`nav-item ${currentTab === "home" ? "active" : ""}`} onClick={() => setCurrentTab("home")}>
+              <div className="nav-icon">{currentTab === "home" ? "🏠" : "🏡"}</div>
+              <span>Home</span>
             </div>
+            
             <div className={`nav-item ${currentTab === "shorts" ? "active" : ""}`} onClick={() => setCurrentTab("shorts")}>
-                <span className="nav-icon">📱</span><span>Shorts</span>
+              <div className="nav-icon">{currentTab === "shorts" ? "📱" : "📱"}</div>
+              <span>Shorts</span>
             </div>
-            <div className={`nav-item ${currentTab === "profile" ? "active" : ""}`} onClick={() => setCurrentTab("library")}>
-                <span className="nav-icon">❤️</span><span>Library</span>
+            
+            <div className={`nav-item ${currentTab === "profile" ? "active" : ""}`} onClick={() => setCurrentTab("profile")}>
+              <div className="nav-icon">{currentTab === "profile" ? "👤" : "👤"}</div>
+              <span>Library</span>
             </div>
           </div>
+
         </div>
       );
     }
+
     ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('service-worker.js').catch(()=>{}); }
   </script>
 </body>
 </html>
