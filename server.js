@@ -4,144 +4,170 @@ require('dotenv').config();
 
 const app = express();
 
-// Middleware
-app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST"],
-  credentials: true
-}));
+// ── Middleware ──────────────────────────────────────────────────
+app.use(cors({ origin: '*', methods: ['GET', 'POST'] }));
 app.use(express.json());
+app.use((req, res, next) => {
+  console.log(`📡 ${req.method} ${req.path}${req.query.q ? ' → ' + req.query.q : ''}`);
+  next();
+});
 
-const API_KEY = process.env.YOUTUBE_API_KEY;
-const YT_BASE = 'https://www.googleapis.com/youtube/v3';
-const PORT = process.env.PORT || 3001;
+const API_KEY  = process.env.YOUTUBE_API_KEY;
+const YT_BASE  = 'https://www.googleapis.com/youtube/v3';
+const PORT     = process.env.PORT || 3001;
 
-// Aapki Render App ki Public URL
-const RENDER_EXTERNAL_URL = 'https://yt-free.onrender.com';
+// ── Simple In-Memory Cache ──────────────────────────────────────
+const cache = new Map();
+const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 
-// ⚡ SUPER FAST CACHE SYSTEM (Saves API Quota & Loads Instantly)
-const cache = {
-  trending: {},
-  search: {}
-};
-const CACHE_TTL = 10 * 60 * 1000; // 10 Minutes Cache
-
-function getCachedData(type, key) {
-  const cached = cache[type][key];
-  if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
-    return cached.data;
-  }
-  return null;
+function getCache(key) {
+  const entry = cache.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.ts > CACHE_TTL) { cache.delete(key); return null; }
+  console.log(`⚡ Serving from Cache: ${key}`);
+  return entry.data;
 }
 
-function setCacheData(type, key, data) {
-  cache[type][key] = {
-    timestamp: Date.now(),
-    data: data
-  };
+function setCache(key, data) {
+  cache.set(key, { data, ts: Date.now() });
 }
 
-// 🔄 SELF-PING (KEEP-ALIVE) SYSTEM
-// Yeh Render ko sone se rokega by calling its own public URL
-function keepAlive() {
-  setInterval(async () => {
-    try {
-      const response = await fetch(`${RENDER_EXTERNAL_URL}/api/health`);
-      if (response.ok) {
-        console.log(`🔄 Keep-alive ping sent to external URL: Success`);
-      }
-    } catch (err) {
-      console.error('Keep-alive ping failed:', err.message);
-    }
-  }, 5 * 60 * 1000); // Har 5 minute mein public URL ko hit karega
+// ── Helper: YouTube items → { videos: [...] } ──────────────────
+// FIX: Frontend expects { videos: [] } but YouTube returns { items: [] }
+function formatVideos(items = []) {
+  return items.map(item => ({
+    id:           item.id?.videoId || item.id || '',
+    title:        item.snippet?.title || '',
+    channelTitle: item.snippet?.channelTitle || '',
+    thumbnail:    item.snippet?.thumbnails?.medium ||
+                  item.snippet?.thumbnails?.default || null,
+    publishedAt:  item.snippet?.publishedAt || '',
+  }));
 }
 
-// Routes
+// ── Health ─────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-app.get('/api/trending', async (req, res) => {
-  try {
-    if (!API_KEY) return res.status(500).json({ error: 'API key not configured' });
-    
-    const { categoryId = 'all', maxResults = 24 } = req.query;
-    const cacheKey = `${categoryId}-${maxResults}`;
-
-    // 1. Check Cache First (Instantly return if available)
-    const cachedResponse = getCachedData('trending', cacheKey);
-    if (cachedResponse) {
-      console.log('⚡ Serving Trending from Cache:', categoryId);
-      return res.json(cachedResponse);
-    }
-    
-    // 2. If not in cache, fetch from YouTube API
-    const cat = categoryId !== 'all' ? `&videoCategoryId=${categoryId}` : '';
-    const url = `${YT_BASE}/videos?part=snippet,statistics&chart=mostPopular&regionCode=IN&maxResults=${maxResults}${cat}&key=${API_KEY}`;
-    
-    console.log('📡 Fetching Trending from YT:', categoryId);
-    const response = await fetch(url);
-    const data = await response.json();
-    
-    if (data.error) throw new Error(data.error.message);
-    
-    // 3. Save to Cache for next users
-    setCacheData('trending', cacheKey, data);
-    res.json(data);
-
-  } catch (error) {
-    console.error('Trending error:', error.message);
-    res.status(500).json({ error: error.message });
-  }
-});
-
+// ── Search ─────────────────────────────────────────────────────
+// FIX: Now accepts "limit" param (frontend sends limit=100)
+// FIX: Returns { videos: [...] } instead of raw YouTube response
 app.get('/api/search', async (req, res) => {
   try {
     if (!API_KEY) return res.status(500).json({ error: 'API key not configured' });
-    
-    const { q, maxResults = 24 } = req.query;
-    if (!q) return res.status(400).json({ error: 'Query required' });
-    
-    const cacheKey = `${q.toLowerCase().trim()}-${maxResults}`;
 
-    // 1. Check Cache First
-    const cachedResponse = getCachedData('search', cacheKey);
-    if (cachedResponse) {
-      console.log('⚡ Serving Search from Cache:', q);
-      return res.json(cachedResponse);
-    }
-    
-    // 2. Fetch from YouTube
-    const url = `${YT_BASE}/search?part=snippet&q=${encodeURIComponent(q)}&maxResults=${maxResults}&type=video&key=${API_KEY}`;
-    
-    console.log('📡 Fetching Search from YT:', q);
+    const { q, limit, maxResults } = req.query;
+    if (!q) return res.status(400).json({ error: 'Query required' });
+
+    const count = Math.min(parseInt(limit || maxResults || 24), 50); // YT max = 50
+    const cacheKey = `search:${q}:${count}`;
+    const cached = getCache(cacheKey);
+    if (cached) return res.json(cached);
+
+    console.log(`🔍 Fetching Search from YT: ${q}`);
+    const url = `${YT_BASE}/search?part=snippet&q=${encodeURIComponent(q)}&maxResults=${count}&type=video&regionCode=IN&key=${API_KEY}`;
     const response = await fetch(url);
     const data = await response.json();
-    
-    if (data.error) throw new Error(data.error.message);
-    
-    // 3. Save to Cache
-    setCacheData('search', cacheKey, data);
-    res.json(data);
 
-  } catch (error) {
-    console.error('Search error:', error.message);
-    res.status(500).json({ error: error.message });
+    if (data.error) {
+      console.error('YouTube API error:', data.error.message);
+      return res.status(400).json({ error: data.error.message, videos: [] });
+    }
+
+    const result = { videos: formatVideos(data.items) };
+    setCache(cacheKey, result);
+    console.log(`✅ Search done: ${result.videos.length} videos`);
+    res.json(result);
+
+  } catch (err) {
+    console.error('Search error:', err);
+    res.status(500).json({ error: err.message, videos: [] });
   }
 });
 
-// Start server
-const server = app.listen(PORT, () => {
+// ── Category (Trending by category) ───────────────────────────
+// FIX: This route was MISSING — frontend calls /api/category?id=10&limit=100
+app.get('/api/category', async (req, res) => {
+  try {
+    if (!API_KEY) return res.status(500).json({ error: 'API key not configured' });
+
+    const { id, limit, maxResults } = req.query;
+    const catId = id && id !== 'all' ? id : null;
+    const count = Math.min(parseInt(limit || maxResults || 24), 50);
+    const cacheKey = `category:${catId || 'all'}:${count}`;
+    const cached = getCache(cacheKey);
+    if (cached) return res.json(cached);
+
+    console.log(`📂 Fetching Category from YT: ${catId || 'all'}`);
+    const catParam = catId ? `&videoCategoryId=${catId}` : '';
+    const url = `${YT_BASE}/videos?part=snippet,statistics&chart=mostPopular&regionCode=IN&maxResults=${count}${catParam}&key=${API_KEY}`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (data.error) {
+      console.error('YouTube API error:', data.error.message);
+      return res.status(400).json({ error: data.error.message, videos: [] });
+    }
+
+    // /videos endpoint returns id as string, not object
+    const result = { videos: formatVideos(data.items) };
+    setCache(cacheKey, result);
+    console.log(`✅ Category done: ${result.videos.length} videos`);
+    res.json(result);
+
+  } catch (err) {
+    console.error('Category error:', err);
+    res.status(500).json({ error: err.message, videos: [] });
+  }
+});
+
+// ── Trending (kept for backward compat) ────────────────────────
+app.get('/api/trending', async (req, res) => {
+  const { categoryId, limit, maxResults } = req.query;
+  req.query.id = categoryId;
+  req.query.limit = limit || maxResults;
+  // Reuse category logic
+  return require('http').get(
+    `http://localhost:${PORT}/api/category?id=${categoryId || ''}&limit=${limit || 24}`,
+    r => { let d = ''; r.on('data', c => d += c); r.on('end', () => res.json(JSON.parse(d))); }
+  ).on('error', () => res.status(500).json({ videos: [] }));
+});
+
+// ── 404 / Error handlers ───────────────────────────────────────
+app.use((req, res) => res.status(404).json({ error: 'Not Found', videos: [] }));
+app.use((err, req, res, next) => {
+  console.error('Server error:', err);
+  res.status(500).json({ error: 'Internal Server Error', videos: [] });
+});
+
+// ── Keep-Alive ──────────────────────────────────────────────────
+function keepAlive() {
+  const EXTERNAL_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
+  setInterval(async () => {
+    try {
+      await fetch(`${EXTERNAL_URL}/api/health`);
+      console.log('💓 Keep-alive ping sent to external URL: Success');
+    } catch (err) {
+      console.log('💓 Keep-alive ping skipped');
+    }
+  }, 5 * 60 * 1000);
+}
+
+// ── Start ───────────────────────────────────────────────────────
+app.listen(PORT, () => {
+  console.log('');
+  console.log('╔══════════════════════════════════════╗');
+  console.log('║   🚀 YT-Free Backend — FIXED v2.0   ║');
+  console.log('╚══════════════════════════════════════╝');
   console.log(`✅ Backend Super-Charged & Running on port ${PORT}`);
-  
-  // Start the self-ping mechanism
+  console.log(`🔐 API Key: ${API_KEY ? 'SET ✓' : 'MISSING ✗'}`);
+  console.log('');
   keepAlive();
   console.log('🛡️ Self-ping keep-alive enabled! Render server will not sleep.');
 });
 
-// Graceful shutdown
 process.on('SIGTERM', () => {
-  server.close(() => {
-    process.exit(0);
-  });
+  console.log('SIGTERM received, shutting down gracefully...');
+  process.exit(0);
 });
