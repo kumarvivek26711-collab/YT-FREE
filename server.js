@@ -5,8 +5,16 @@ require('dotenv').config();
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST"],
+  credentials: true
+}));
 app.use(express.json());
+app.use((req, res, next) => {
+  console.log(`📡 ${req.method} ${req.path}`);
+  next();
+});
 
 const API_KEY = process.env.YOUTUBE_API_KEY;
 const YT_BASE = 'https://www.googleapis.com/youtube/v3';
@@ -31,18 +39,25 @@ app.get('/api/health', (req, res) => {
 
 app.get('/api/trending', async (req, res) => {
   try {
+    if (!API_KEY) {
+      return res.status(500).json({ error: 'API key not configured' });
+    }
+    
     const { categoryId, maxResults = 24 } = req.query;
     const cat = categoryId && categoryId !== 'all' ? `&videoCategoryId=${categoryId}` : '';
     
     const url = `${YT_BASE}/videos?part=snippet,statistics&chart=mostPopular&regionCode=IN&maxResults=${maxResults}${cat}&key=${API_KEY}`;
     
+    console.log('📡 Trending request:', categoryId || 'all');
     const response = await fetch(url);
     const data = await response.json();
     
     if (data.error) {
+      console.error('YouTube API error:', data.error.message);
       return res.status(400).json({ error: data.error.message });
     }
     
+    console.log('✅ Trending response:', data.items?.length || 0, 'items');
     res.json(data);
   } catch (error) {
     console.error('Trending error:', error);
@@ -52,6 +67,10 @@ app.get('/api/trending', async (req, res) => {
 
 app.get('/api/search', async (req, res) => {
   try {
+    if (!API_KEY) {
+      return res.status(500).json({ error: 'API key not configured' });
+    }
+    
     const { q, maxResults = 24 } = req.query;
     
     if (!q) {
@@ -60,13 +79,16 @@ app.get('/api/search', async (req, res) => {
     
     const url = `${YT_BASE}/search?part=snippet&q=${encodeURIComponent(q)}&maxResults=${maxResults}&type=video&key=${API_KEY}`;
     
+    console.log('📡 Search request:', q);
     const response = await fetch(url);
     const data = await response.json();
     
     if (data.error) {
+      console.error('YouTube API error:', data.error.message);
       return res.status(400).json({ error: data.error.message });
     }
     
+    console.log('✅ Search response:', data.items?.length || 0, 'items');
     res.json(data);
   } catch (error) {
     console.error('Search error:', error);
