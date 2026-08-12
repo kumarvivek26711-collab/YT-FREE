@@ -20,7 +20,7 @@
   
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
-    body, html { background: #f5f5f7; color: #1d1d1f; -webkit-tap-highlight-color: transparent; width: 100%; min-height: 100vh; overflow-x: hidden; scroll-behavior: smooth; }
+    body, html { background: #f5f5f7; color: #1d1d1f; -webkit-tap-highlight-color: transparent; width: 100%; min-height: 100vh; overflow-x: hidden; }
     ::-webkit-scrollbar { width: 0px; display: none; }
 
     /* Header */
@@ -125,6 +125,7 @@
       "sourav joshi vlogs", "carryminati", "bgmi live india", "free fire india", "wwe hindi dubbed", 
       "tarak mehta ka ooltah chashmah", "kapil sharma show", "round2hell new video", "news live india", "standup comedy hindi"
     ];
+    
     const SHORTS_SEEDS = ["#shorts viral india", "#shorts hindi comedy", "#shorts trending song", "#shorts dance india", "#shorts facts hindi"];
 
     function getVid(v) { return typeof v.id === "string" ? v.id : (v.id?.videoId || ""); }
@@ -173,33 +174,47 @@
         fetchVideos(null, false, searchWord);
       }
 
+      // MAHA-FIX: Infinite Scroll Duplicate Issue Solved Permanently
       async function fetchVideos(cat, isAppend = false, customQuery = null) {
         if (isAppend) setAppending(true);
-        else { setLoading(true); setError(""); }
+        else { setLoading(true); setVideos([]); setError(""); }
         try {
           let url = ""; 
           let finalQuery = customQuery !== null ? customQuery : query;
           
-          // 🔥 SCROLL FIX: Har scroll par naya suffix jodeaga, taaki backend cache duplicate na bheje!
-          const dynamicSuffixes = ["new", "2026", "hd", "viral", "trending", "best", "top", "latest hits", "india"];
-          let randomSeed = RANDOM_SEEDS[Math.floor(Math.random() * RANDOM_SEEDS.length)];
-          let suffix = dynamicSuffixes[Math.floor(Math.random() * dynamicSuffixes.length)];
+          // Category wise dynamic seeds so infinite scroll never stops
+          const catLabels = {
+            "10": ["latest hindi songs", "new punjabi songs", "bollywood hit music", "tseries new", "lofi mashup india"],
+            "20": ["bgmi live gameplay", "free fire india", "gta 5 techno gamerz", "minecraft hindi", "total gaming"],
+            "24": ["tarak mehta ka ooltah chashmah", "kapil sharma show latest", "round2hell new", "bb ki vines", "ashish chanchlani comedy"],
+            "17": ["cricket highlights india", "wwe hindi dubbed", "ipl highlights", "sports tak live", "football highlights hindi"],
+            "28": ["tech burner latest", "technical guruji new", "trakin tech", "mobile unboxing hindi", "pc build hindi"],
+            "22": ["sourav joshi vlogs", "flying beast new", "mumbiker nikhil vlog", "uk07 rider", "daily vlog india"]
+          };
 
-          if (finalQuery) {
-            let backendQuery = finalQuery;
-            if (isAppend) backendQuery += " " + suffix;
-            if (!backendQuery.toLowerCase().includes("india") && !backendQuery.toLowerCase().includes("hindi")) backendQuery += " India";
-            url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(backendQuery)}&maxResults=24`;
-          } else if (cat && cat !== "all") {
-            if (isAppend) {
-               let catLabel = CATS.find(c => c.id === cat).label;
-               url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(catLabel + " " + suffix)}&maxResults=24`;
-            } else {
-               url = `${BACKEND_URL}/api/trending?categoryId=${cat}&maxResults=24`;
-            }
+          let randomSeed = "";
+          if (cat && cat !== "all" && catLabels[cat]) {
+             randomSeed = catLabels[cat][Math.floor(Math.random() * catLabels[cat].length)];
           } else {
-             if (isAppend) randomSeed += " " + suffix;
-             url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(randomSeed)}&maxResults=24`;
+             randomSeed = RANDOM_SEEDS[Math.floor(Math.random() * RANDOM_SEEDS.length)];
+          }
+
+          // Cache Buster adds extreme randomness to bypass Youtube duplicate responses
+          const cacheBuster = ["new", "2026", "viral", "hd", "latest hits", "trending"][Math.floor(Math.random() * 6)];
+          randomSeed += " " + cacheBuster;
+
+          // Logic: ALWAYS use search endpoint when appending so we get fresh data
+          if (isAppend) {
+            let q = finalQuery ? (finalQuery + " " + cacheBuster) : randomSeed;
+            url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(q)}&maxResults=24`;
+          } else {
+            if (finalQuery) {
+              url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(finalQuery)}&maxResults=24`;
+            } else if (cat && cat !== "all") {
+              url = `${BACKEND_URL}/api/trending?categoryId=${cat}&maxResults=24`; // Trending for initial category load
+            } else {
+              url = `${BACKEND_URL}/api/search?q=${encodeURIComponent(randomSeed)}&maxResults=24`;
+            }
           }
           
           const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
@@ -211,8 +226,9 @@
             const newVids = data.items.filter(v => getVid(v)); 
             if (isAppend) {
                setVideos(prev => {
-                  const combined = [...prev, ...newVids.filter(nv => !prev.some(pv => getVid(pv) === getVid(nv)))];
-                  return combined;
+                  const existingIds = new Set(prev.map(p => getVid(p)));
+                  const uniqueNew = newVids.filter(nv => !existingIds.has(getVid(nv)));
+                  return [...prev, ...uniqueNew];
                });
             } else {
                setVideos(newVids.sort(() => Math.random() - 0.5));
@@ -224,20 +240,29 @@
 
       useEffect(() => { fetchVideos("all"); }, []);
 
-      // 🔥 SCROLL FIX: Bulletproof scroll detection for Mobile & Desktop
+      // FIX: Improved scroll logic with Timeout Debounce to prevent multiple fire
       useEffect(() => {
+        let timeoutId;
         const handleScroll = () => {
-          if (currentTab !== "home") return;
+          if (currentTab !== "home" || loading || appending) return;
+          
           const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
           const windowHeight = window.innerHeight;
           const docHeight = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
           
-          if (docHeight - (scrollTop + windowHeight) <= 1800 && !loading && !appending) {
-            fetchVideos(activeCat, true);
+          if (docHeight - (scrollTop + windowHeight) < 1500) {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+               fetchVideos(activeCat, true);
+            }, 100);
           }
         };
+        
         window.addEventListener('scroll', handleScroll, { passive: true });
-        return () => window.removeEventListener('scroll', handleScroll);
+        return () => {
+           window.removeEventListener('scroll', handleScroll);
+           clearTimeout(timeoutId);
+        };
       }, [loading, appending, activeCat, query, currentTab]);
 
       const handleHomeRefresh = () => {
@@ -245,16 +270,24 @@
         setActiveCat("all");
         setQuery("");
         setSelected(null);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo(0, 0);
         fetchVideos("all");
       };
 
+      // MAHA-FIX: Bulletproof instant scroll top
       const handleVideoClick = (v) => {
         setSelected(v);
         addToHistory(v);
+        
+        // 1. Force instant scroll without animation
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+        
+        // 2. Fallback smooth scroll after React renders the player
         setTimeout(() => {
           window.scrollTo({ top: 0, behavior: 'smooth' });
-        }, 100);
+        }, 50);
       };
 
       function goFullscreen() {
